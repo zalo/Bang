@@ -5,7 +5,6 @@
 
 canvas {
   border: #9999 1px solid;
-  //max-width: 100%;
 }
 
 div.wrapper {
@@ -38,4 +37,11 @@ header ul {
   position:absolute;
   right:5px;
   top:52px;
+}
+
+@media print, screen and (max-width: 960px) {
+  div.wrapper {
+    width:auto;
+    margin:0;
+  }
 }

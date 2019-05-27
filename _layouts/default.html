@@ -23,7 +23,7 @@
       {% if site.github.is_project_page %}
       <!-- Load the paper.js library and Bang.js (which creates the canvas)... -->
       <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/paper.js/0.12.0/paper-core.min.js"></script>
-      <canvas id="DrawingEnvironmentCanvas" width="100" height="100"></canvas>
+      <canvas id="DrawingEnvironmentCanvas" width="100" height="100" hidpi="on" resize></canvas>
       <script type="text/javascript" src="Bang.js"></script>
       <div class="ProjectControls">
           <b>Brush Width: </b> <input type="range" min="1" max="100" value="10" class="slider" id="brushWidth"> |

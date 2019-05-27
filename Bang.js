@@ -36,7 +36,8 @@ var DrawingEnvironment = function () {
     // Only execute our code once the DOM is ready
     window.onload = function () {
       drawingEnvironment.canvas = document.getElementById("DrawingEnvironmentCanvas");
-      let parentWidth = Math.min(1024, drawingEnvironment.canvas.parentElement.clientWidth);
+      drawingEnvironment.canvas.setAttribute("oncontextmenu", "return false;");
+      let parentWidth = Math.min(512, drawingEnvironment.canvas.parentElement.clientWidth);
       if(drawingEnvironment.canvas.width != parentWidth){
         drawingEnvironment.canvas.width  = parentWidth;
         drawingEnvironment.canvas.height = parentWidth;
@@ -51,7 +52,7 @@ var DrawingEnvironment = function () {
       // Register Animation and Resizing Callbacks
       //paper.view.onFrame  = function(event) { }
       paper.view.onResize = function(event) {
-        let parentWidth = Math.min(1024, drawingEnvironment.canvas.parentElement.clientWidth);
+        let parentWidth = Math.min(512, drawingEnvironment.canvas.parentElement.clientWidth);
         if(drawingEnvironment.canvas.width != parentWidth){
           drawingEnvironment.canvas.width  = parentWidth;
           drawingEnvironment.canvas.height = parentWidth;
