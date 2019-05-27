@@ -36,10 +36,10 @@ var DrawingEnvironment = function () {
     // Only execute our code once the DOM is ready
     window.onload = function () {
       drawingEnvironment.canvas = document.getElementById("DrawingEnvironmentCanvas");
-      let parentWidth = drawingEnvironment.canvas.parentElement.clientWidth;
-      if(canvas.width != parentWidth){
-        canvas.width  = parentWidth;
-        canvas.height = parentWidth;
+      let parentWidth = Math.min(1024, drawingEnvironment.canvas.parentElement.clientWidth);
+      if(drawingEnvironment.canvas.width != parentWidth){
+        drawingEnvironment.canvas.width  = parentWidth;
+        drawingEnvironment.canvas.height = parentWidth;
       }
       paper.setup("DrawingEnvironmentCanvas");
       paper.project.activeLayer.name = "Frame-0";
@@ -51,10 +51,10 @@ var DrawingEnvironment = function () {
       // Register Animation and Resizing Callbacks
       //paper.view.onFrame  = function(event) { }
       paper.view.onResize = function(event) {
-        let parentWidth = drawingEnvironment.canvas.parentElement.clientWidth;
-        if(canvas.width != parentWidth){
-          canvas.width  = parentWidth;
-          canvas.height = parentWidth;
+        let parentWidth = Math.min(1024, drawingEnvironment.canvas.parentElement.clientWidth);
+        if(drawingEnvironment.canvas.width != parentWidth){
+          drawingEnvironment.canvas.width  = parentWidth;
+          drawingEnvironment.canvas.height = parentWidth;
         }
       }
 
@@ -119,7 +119,7 @@ var DrawingEnvironment = function () {
     this.omniTool.onMouseDown = function (event) {
       this.button = event.event.button;
 
-      if (!this.button || this.button <= 0) {
+      if ((!this.button) || this.button <= 0) {
         // Begin creating a new brush stroke
         this.currentPath = new paper.Path();
         this.currentPath.strokeColor = 'black';
@@ -181,7 +181,7 @@ var DrawingEnvironment = function () {
       }
     }
     this.omniTool.onMouseDrag = function (event) {
-      if (!this.button || this.button <= 0) {
+      if ((!this.button) || this.button <= 0) {
         paper.project.activeLayer.selected = false;
         this.currentPath.add(event.point);
       } else {
@@ -194,7 +194,7 @@ var DrawingEnvironment = function () {
       }
     }
     this.omniTool.onMouseUp = function (event) {
-      if (!this.button || this.button <= 0) {
+      if ((!this.button) || this.button <= 0) {
         this.currentPath.simplify(10);
         this.currentPath.name = "Stroke-" + this.currentPath.toString().hashCode();
         this.currentPath.addTo(paper.project.activeLayer.children[0]);
