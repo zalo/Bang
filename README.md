@@ -5,11 +5,11 @@
 - `Middle Click`: Move a brush stroke, segment, or shape
 - `Right Click`: Erase a stroke, segment, or shape
 - `Ctrl-Z`/`Ctrl-Y`: Undo/Redo the last action
-- Brush Width: Change the width of the brush
-- Prev/Next Frame: Navigate the playhead forward and backward one frame.
-- Duplicate Frame: Either creates a new frame with the contents of this frame (or copies the content from the last frame)
-- Load from SVG: Loads a prior session or an arbitrary foreign SVG
-- Save SVG: Saves this session as an animated SVG (preserving undo)
+- **Brush Width**: Change the width of the brush
+- **Prev/Next**: Navigate the playhead forward and backward one frame
+- **Duplicate**: Either creates a new frame with the contents of this frame (or copies the content from the last frame)
+- **Load from SVG**: Loads a prior session or an arbitrary foreign SVG
+- **Save to SVG**: Saves this session as an animated SVG (preserving undo)
 
 ## About
 

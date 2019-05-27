@@ -26,9 +26,9 @@ var DrawingEnvironment = function () {
     // Create the Canvas Element
     this.canvas = document.createElement('canvas');
     this.canvas.id = "DrawingEnvironmentCanvas";
-    this.canvas.width = 640;//window.innerWidth-20;
+    this.canvas.width = 640;
     this.canvas.height = 480;
-    this.canvas.setAttribute("resize", "true");
+    //this.canvas.setAttribute("resize", "true");
     this.canvas.setAttribute("hidpi", "on");
     this.canvas.setAttribute("oncontextmenu", "return false;");
     document.currentScript.parentNode.insertBefore(this.canvas, document.currentScript.nextSibling);

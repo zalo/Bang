@@ -26,14 +26,14 @@
       <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/paper.js/0.12.0/paper-core.min.js"></script>
       <script type="text/javascript" src="Bang.js"></script>
       <div class="ProjectControls">
-          <b>Brush Width:</b> <input type="range" min="1" max="100" value="10" class="slider" id="brushWidth">
-          <a href="#" onclick="drawingEnvironment.prevFrame();"><b>Prev Frame</b></a>
-          <a href="#" onclick="drawingEnvironment.nextFrame();"><b>Next Frame</b></a>
-          <a href="#" onclick="drawingEnvironment.duplicateFrame();"><b>Duplicate Frame</b></a>
+          <b>Brush Width: </b> <input type="range" min="1" max="100" value="10" class="slider" id="brushWidth"> |
+          <a href="#" onclick="drawingEnvironment.prevFrame();"><b> Prev </b></a>|
+          <a href="#" onclick="drawingEnvironment.nextFrame();"><b> Next </b></a>|
+          <a href="#" onclick="drawingEnvironment.duplicateFrame();"><b> Duplicate </b></a>
       </div>
       <div class="ExportControls">
-          <b>Load from SVG: <input id="svg-file" type="file" accept="image/svg+xml"/>
-          <a href="#" onclick="drawingEnvironment.saveSVG();"><b>Save to SVG</b></a>
+          <a href="#" onclick="drawingEnvironment.saveSVG();"><b>Save to SVG </b></a>| 
+          <b> Load from SVG: <input id="svg-file" type="file" accept="image/svg+xml"/>
       </div>
       {% endif %}
 
