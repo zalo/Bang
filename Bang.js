@@ -67,6 +67,11 @@ var DrawingEnvironment = function () {
         drawingEnvironment.brushWidth = data.target.value;
       });
 
+      // Add the Framerate Box
+      document.getElementById("Framerate").addEventListener('change', (data) => {
+        drawingEnvironment.frameRate = data.target.value;
+      });
+
       // Allow users to upload SVGs from past sessions
       document.getElementById("svg-file").addEventListener('input', () => {
         // Read the file!
