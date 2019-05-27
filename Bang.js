@@ -119,7 +119,7 @@ var DrawingEnvironment = function () {
     this.omniTool.onMouseDown = function (event) {
       this.button = event.event.button;
 
-      if (this.button == 0) {
+      if (!this.button || this.button <= 0) {
         // Begin creating a new brush stroke
         this.currentPath = new paper.Path();
         this.currentPath.strokeColor = 'black';
@@ -181,7 +181,7 @@ var DrawingEnvironment = function () {
       }
     }
     this.omniTool.onMouseDrag = function (event) {
-      if (this.button == 0) {
+      if (!this.button || this.button <= 0) {
         paper.project.activeLayer.selected = false;
         this.currentPath.add(event.point);
       } else {
@@ -194,7 +194,7 @@ var DrawingEnvironment = function () {
       }
     }
     this.omniTool.onMouseUp = function (event) {
-      if (this.button == 0) {
+      if (!this.button || this.button <= 0) {
         this.currentPath.simplify(10);
         this.currentPath.name = "Stroke-" + this.currentPath.toString().hashCode();
         this.currentPath.addTo(paper.project.activeLayer.children[0]);
