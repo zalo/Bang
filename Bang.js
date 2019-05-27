@@ -24,17 +24,18 @@ var DrawingEnvironment = function () {
 
   this.init = function () {
     // Create the Canvas Element
-    this.canvas = document.createElement('canvas');
-    this.canvas.id = "DrawingEnvironmentCanvas";
-    this.canvas.width = 640;
-    this.canvas.height = 480;
-    //this.canvas.setAttribute("resize", "true");
-    this.canvas.setAttribute("hidpi", "off"); // Test this for now
-    //this.canvas.setAttribute("oncontextmenu", "return false;");
-    document.currentScript.parentNode.insertBefore(this.canvas, document.currentScript.nextSibling);
+    //this.canvas = document.createElement('canvas');
+    //this.canvas.id = "DrawingEnvironmentCanvas";
+    //this.canvas.width = 640;
+    //this.canvas.height = 480;
+    ////this.canvas.setAttribute("resize", "true");
+    //this.canvas.setAttribute("hidpi", "off"); // Test this for now
+    ////this.canvas.setAttribute("oncontextmenu", "return false;");
+    //document.currentScript.parentNode.insertBefore(this.canvas, document.currentScript.nextSibling);
 
     // Only execute our code once the DOM is ready
     window.onload = function () {
+      drawingEnvironment.canvas = document.getElementById("DrawingEnvironmentCanvas");
       paper.setup(drawingEnvironment.canvas);
       paper.project.activeLayer.name = "Frame-0";
       paper.project.activeLayer.addChildren(
