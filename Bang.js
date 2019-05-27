@@ -36,7 +36,12 @@ var DrawingEnvironment = function () {
     // Only execute our code once the DOM is ready
     window.onload = function () {
       drawingEnvironment.canvas = document.getElementById("DrawingEnvironmentCanvas");
-      paper.setup(drawingEnvironment.canvas);
+      let parentWidth = drawingEnvironment.canvas.parentElement.clientWidth;
+      if(canvas.width != parentWidth){
+        canvas.width  = parentWidth;
+        canvas.height = parentWidth;
+      }
+      paper.setup("DrawingEnvironmentCanvas");
       paper.project.activeLayer.name = "Frame-0";
       paper.project.activeLayer.addChildren(
         new paper.Group({ name:'Drawing' }), 
@@ -45,7 +50,13 @@ var DrawingEnvironment = function () {
 
       // Register Animation and Resizing Callbacks
       //paper.view.onFrame  = function(event) { }
-      //paper.view.onResize = function(event) { }
+      paper.view.onResize = function(event) {
+        let parentWidth = drawingEnvironment.canvas.parentElement.clientWidth;
+        if(canvas.width != parentWidth){
+          canvas.width  = parentWidth;
+          canvas.height = parentWidth;
+        }
+      }
 
       // Initialize the Brush/Manipulator/Eraser Tool
       drawingEnvironment.initOmniTool();
@@ -103,9 +114,9 @@ var DrawingEnvironment = function () {
 
   // Initialize the callbacks for the mouse tool
   this.initOmniTool = function () {
-    //this.omniTool = new paper.Tool();
-    paper.view.lastTolerance = 5;
-    paper.view.onMouseDown = function (event) {
+    this.omniTool = new paper.Tool();
+    this.omniTool.lastTolerance = 5;
+    this.omniTool.onMouseDown = function (event) {
       this.button = event.event.button;
 
       if (this.button == 0) {
@@ -159,7 +170,7 @@ var DrawingEnvironment = function () {
         }
       }
     }
-    paper.view.onMouseMove = function (event) {
+    this.omniTool.onMouseMove = function (event) {
       paper.project.activeLayer.selected = false;
       let hit = this.hitTestActiveLayer(event.point);
       if (hit) {
@@ -169,7 +180,7 @@ var DrawingEnvironment = function () {
         }
       }
     }
-    paper.view.onMouseDrag = function (event) {
+    this.omniTool.onMouseDrag = function (event) {
       if (this.button == 0) {
         paper.project.activeLayer.selected = false;
         this.currentPath.add(event.point);
@@ -182,7 +193,7 @@ var DrawingEnvironment = function () {
         }
       }
     }
-    paper.view.onMouseUp = function (event) {
+    this.omniTool.onMouseUp = function (event) {
       if (this.button == 0) {
         this.currentPath.simplify(10);
         this.currentPath.name = "Stroke-" + this.currentPath.toString().hashCode();
@@ -196,7 +207,7 @@ var DrawingEnvironment = function () {
         paper.project.activeLayer.children[2].removeChildren();
       }
     }
-    paper.view.onKeyDown = function (event) {
+    this.omniTool.onKeyDown = function (event) {
       if (event.modifiers.control) {
         if(event.key == 'z') {
           // If pressing the Undo shortcut...
@@ -213,7 +224,7 @@ var DrawingEnvironment = function () {
         }
       }
     }
-    paper.view.processDoCommand = function(drawingLayer, commandLayer, reverseLayer){
+    this.omniTool.processDoCommand = function(drawingLayer, commandLayer, reverseLayer){
       let command = commandLayer.lastChild;
       if (command) {
         // If this item's name starts with the removeCmd...
@@ -249,7 +260,7 @@ var DrawingEnvironment = function () {
         }
       }
     }
-    paper.view.saveItemStateForUndo = function(item){
+    this.omniTool.saveItemStateForUndo = function(item){
       // If an object doesn't have a name, give it one :)
       if(!item.name){
         item.name = "ForeignObject-"+item.toString().hashCode();
@@ -261,7 +272,7 @@ var DrawingEnvironment = function () {
       // Clear the redo "history" (it's technically invalid now...)
       paper.project.activeLayer.children[2].removeChildren();
     }
-    paper.view.hitTestActiveLayer = function (point) {
+    this.omniTool.hitTestActiveLayer = function (point) {
       return paper.project.hitTest(point, {
         segments: true,
         stroke: true,
