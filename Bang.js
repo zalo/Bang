@@ -43,8 +43,8 @@ var DrawingEnvironment = function () {
         new paper.Group({ name:'Redo', visible: false }));
 
       // Register Animation and Resizing Callbacks
-      //view.onFrame  = function(event) { }
-      //view.onResize = function(event) { }
+      view.onFrame  = function(event) { }
+      view.onResize = function(event) { }
 
       // Initialize the Brush/Manipulator/Eraser Tool
       drawingEnvironment.initOmniTool();
