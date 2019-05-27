@@ -37,7 +37,7 @@ var DrawingEnvironment = function () {
     window.onload = function () {
       drawingEnvironment.canvas = document.getElementById("DrawingEnvironmentCanvas");
       drawingEnvironment.canvas.setAttribute("oncontextmenu", "return false;");
-      let parentWidth = Math.min(512, drawingEnvironment.canvas.parentElement.clientWidth);
+      let parentWidth = drawingEnvironment.calculateDimension();
       if(drawingEnvironment.canvas.width != parentWidth){
         drawingEnvironment.canvas.width  = parentWidth;
         drawingEnvironment.canvas.height = parentWidth;
@@ -52,7 +52,7 @@ var DrawingEnvironment = function () {
       // Register Animation and Resizing Callbacks
       //paper.view.onFrame  = function(event) { }
       paper.view.onResize = function(event) {
-        let parentWidth = Math.min(512, drawingEnvironment.canvas.parentElement.clientWidth);
+        let parentWidth = drawingEnvironment.calculateDimension();
         if(drawingEnvironment.canvas.width != parentWidth){
           drawingEnvironment.canvas.width  = parentWidth;
           drawingEnvironment.canvas.height = parentWidth;
@@ -111,6 +111,14 @@ var DrawingEnvironment = function () {
         document.getElementById("svg-file").value = null;
       });
     }
+  }
+
+  this.calculateDimension = function(){
+    return Math.min(drawingEnvironment.canvas.parentElement.clientWidth, 
+                    drawingEnvironment.canvas.parentElement.clientHeight,
+                    document.documentElement.clientWidth, 
+                    document.documentElement.clientHeight, 
+                    window.innerWidth, window.innerHeight, 512);
   }
 
   // Initialize the callbacks for the mouse tool
