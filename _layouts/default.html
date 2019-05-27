@@ -15,8 +15,7 @@
     <div class="wrapper">
       <header>
         <h1><a href="{{ site.github.repository_url }}">{{ site.title | default: site.github.repository_name }}</a></h1>
-
-        <p>{{ site.description | default: site.github.project_tagline }}</p>
+        <!--<p>{{ site.description | default: site.github.project_tagline }}</p>-->
       </header>
 
       <section>
@@ -24,7 +23,7 @@
       {% if site.github.is_project_page %}
       <!-- Load the paper.js library and Bang.js (which creates the canvas)... -->
       <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/paper.js/0.12.0/paper-core.min.js"></script>
-      <script type="text/javascript" src="Bang.js"></script>
+      <!--<script type="text/javascript" src="Bang.js"></script>-->
       <div class="ProjectControls">
           <b>Brush Width: </b> <input type="range" min="1" max="100" value="10" class="slider" id="brushWidth"> |
           <a href="#" onclick="drawingEnvironment.prevFrame();"><b> Prev </b></a>|
@@ -35,6 +34,7 @@
           <a href="#" onclick="drawingEnvironment.saveSVG();"><b>Save to SVG </b></a>| 
           <b> Load from SVG: <input id="svg-file" type="file" accept="image/svg+xml"/>
       </div>
+      <hr>
       {% endif %}
 
       {{ content }}
