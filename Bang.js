@@ -48,7 +48,7 @@ var DrawingEnvironment = function () {
       //paper.view.onResize = function(event) { }
 
       // Initialize the Brush/Manipulator/Eraser Tool
-      //drawingEnvironment.initOmniTool();
+      drawingEnvironment.initOmniTool();
 
       // Add the Brush Width Slider
       document.getElementById("brushWidth").addEventListener('change', (data) => {
