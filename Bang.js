@@ -114,11 +114,12 @@ var DrawingEnvironment = function () {
   }
 
   this.calculateDimension = function(){
-    return Math.min(drawingEnvironment.canvas.parentElement.clientWidth, 
+    let minWindows = Math.min(drawingEnvironment.canvas.parentElement.clientWidth, 
                     drawingEnvironment.canvas.parentElement.clientHeight,
                     document.documentElement.clientWidth, 
                     document.documentElement.clientHeight, 
-                    window.innerWidth, window.innerHeight, 512);
+                    window.innerWidth, window.innerHeight);
+    return Math.min(Math.round( minWindows*0.9), 512);
   }
 
   // Initialize the callbacks for the mouse tool
