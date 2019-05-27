@@ -52,11 +52,11 @@ var DrawingEnvironment = function () {
       // Register Animation and Resizing Callbacks
       //paper.view.onFrame  = function(event) { }
       paper.view.onResize = function(event) {
-        let parentWidth = drawingEnvironment.calculateDimension();
-        if(drawingEnvironment.canvas.width != parentWidth){
-          drawingEnvironment.canvas.width  = parentWidth;
-          drawingEnvironment.canvas.height = parentWidth;
-        }
+        //let parentWidth = drawingEnvironment.calculateDimension();
+        //if(drawingEnvironment.canvas.width != parentWidth){
+        //  drawingEnvironment.canvas.width  = parentWidth;
+        //  drawingEnvironment.canvas.height = parentWidth;
+        //}
       }
 
       // Initialize the Brush/Manipulator/Eraser Tool
