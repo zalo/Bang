@@ -119,7 +119,7 @@ var DrawingEnvironment = function () {
                     document.documentElement.clientWidth, 
                     document.documentElement.clientHeight, 
                     window.innerWidth, window.innerHeight);
-    return Math.min(Math.round( minWindows*0.9), 512);
+    return Math.min(Math.round( minWindows * 0.9), 512);
   }
 
   // Initialize the callbacks for the mouse tool
@@ -127,6 +127,7 @@ var DrawingEnvironment = function () {
     this.omniTool = new paper.Tool();
     this.omniTool.lastTolerance = 5;
     this.omniTool.onMouseDown = function (event) {
+      drawingEnvironment.clearPreview();
       this.button = event.event.button;
 
       if ((!this.button) || this.button <= 0) {
@@ -218,6 +219,7 @@ var DrawingEnvironment = function () {
       }
     }
     this.omniTool.onKeyDown = function (event) {
+      drawingEnvironment.clearPreview();
       if (event.modifiers.control) {
         if(event.key == 'z') {
           // If pressing the Undo shortcut...
@@ -311,26 +313,40 @@ var DrawingEnvironment = function () {
     return animationString;
   }
 
-  this.saveSVG = function () {
+  this.createSVG = function(){
     // Ensure that all frames (but the first) are opaque and hidden by default
     for (let i = 0; i < paper.project.layers.length; i++) {
       paper.project.layers[i].visible = false;
       paper.project.layers[i].opacity = 1;
     }
 
-    let fileName = "drawingExport.svg";
     let svgString = paper.project.exportSVG({ asString: true });
     svgString = svgString.substring(0, svgString.length - 6) +
       this.generateAnimationCSS(this.frameRate) +
       svgString.substring(svgString.length - 6);
-    let url = "data:image/svg+xml;utf8," + encodeURIComponent(svgString);
+    this.updateOnionSkinning();
+    return svgString;
+  }
+
+  this.saveSVG = function () {
+    let fileName = "drawingExport.svg";
+    let url = "data:image/svg+xml;utf8," + encodeURIComponent(this.createSVG());
     let link = document.createElement("a");
     link.download = fileName;
     link.href = url;
     link.click();
+  }
 
-    // Re-set the onion skinning
-    this.updateOnionSkinning();
+  this.previewSVG = function() {
+    let newSvg = document.getElementById('SVG Preview');
+    if(newSvg.innerHTML) {
+      newSvg.innerHTML = '';
+    } else {
+      newSvg.innerHTML = '<h2>Preview: </h2>' + this.createSVG();
+    }
+  }
+  this.clearPreview = function(){
+    document.getElementById('SVG Preview').innerHTML = '';
   }
 
   // Create a new frame if one doesn't exist
@@ -378,6 +394,7 @@ var DrawingEnvironment = function () {
 
   // Ensure all frames are named and rendering properly
   this.updateOnionSkinning = function () {
+    this.clearPreview();
     let currentActiveIndex = paper.project.activeLayer.index;
     let minIndex = Math.max(0, currentActiveIndex - this.skinningWidth);
     let maxIndex = Math.min(paper.project.layers.length, currentActiveIndex + this.skinningWidth);
