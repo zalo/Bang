@@ -30,7 +30,7 @@ var DrawingEnvironment = function () {
     this.canvas.height = 480;
     //this.canvas.setAttribute("resize", "true");
     this.canvas.setAttribute("hidpi", "off"); // Test this for now
-    this.canvas.setAttribute("oncontextmenu", "return false;");
+    //this.canvas.setAttribute("oncontextmenu", "return false;");
     document.currentScript.parentNode.insertBefore(this.canvas, document.currentScript.nextSibling);
 
     // Only execute our code once the DOM is ready
@@ -47,7 +47,7 @@ var DrawingEnvironment = function () {
       //paper.view.onResize = function(event) { }
 
       // Initialize the Brush/Manipulator/Eraser Tool
-      drawingEnvironment.initOmniTool();
+      //drawingEnvironment.initOmniTool();
 
       // Add the Brush Width Slider
       document.getElementById("brushWidth").addEventListener('change', (data) => {
