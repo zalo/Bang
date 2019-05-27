@@ -1,18 +1,3 @@
-# Bang
-
-<!-- Load the paper.js library and Bang.js (which creates the canvas)... -->
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/paper.js/0.12.0/paper-core.min.js"></script>
-<script type="text/javascript" src="Bang.js"></script>
-<div class="ProjectControls">
-    Brush Width: <input type="range" min="1" max="100" value="10" class="slider" id="brushWidth">
-    <a href="#" onclick="drawingEnvironment.prevFrame();">Prev Frame</a>
-    <a href="#" onclick="drawingEnvironment.nextFrame();">Next Frame</a>
-    <a href="#" onclick="drawingEnvironment.duplicateFrame();">Duplicate Frame</a>
-</div>
-<div class="ExportControls">
-    Load from SVG: <input id="svg-file" type="file" accept="image/svg+xml"/>
-    <a href="#" onclick="drawingEnvironment.saveSVG();">Save to SVG</a>
-</div>
 
 ## Instructions
 
@@ -28,9 +13,13 @@
 
 ## About
 
-Bang is a flash-inspired tool for creating animated vector graphics.  
+[Bang](https://zalo.github.io/Bang/) is a flash-inspired tool for creating animated vector graphics.  
 
 It attempts to recreate some of the functionality of .swf's using clever CSS embedded within the .svg.
+
+## License
+
+[Bang is open-sourced under the MIT License.](https://github.com/zalo/Bang)
 
 ## Credits
 
