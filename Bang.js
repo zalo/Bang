@@ -29,7 +29,7 @@ var DrawingEnvironment = function () {
     this.canvas.width = 640;
     this.canvas.height = 480;
     //this.canvas.setAttribute("resize", "true");
-    this.canvas.setAttribute("hidpi", "on");
+    this.canvas.setAttribute("hidpi", "off"); // Test this for now
     this.canvas.setAttribute("oncontextmenu", "return false;");
     document.currentScript.parentNode.insertBefore(this.canvas, document.currentScript.nextSibling);
 
@@ -43,8 +43,8 @@ var DrawingEnvironment = function () {
         new paper.Group({ name:'Redo', visible: false }));
 
       // Register Animation and Resizing Callbacks
-      paper.view.onFrame  = function(event) { }
-      paper.view.onResize = function(event) { }
+      //paper.view.onFrame  = function(event) { }
+      //paper.view.onResize = function(event) { }
 
       // Initialize the Brush/Manipulator/Eraser Tool
       drawingEnvironment.initOmniTool();
