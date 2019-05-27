@@ -102,9 +102,9 @@ var DrawingEnvironment = function () {
 
   // Initialize the callbacks for the mouse tool
   this.initOmniTool = function () {
-    this.omniTool = new paper.Tool();
-    this.omniTool.lastTolerance = 5;
-    this.omniTool.onMouseDown = function (event) {
+    //this.omniTool = new paper.Tool();
+    paper.view.lastTolerance = 5;
+    paper.view.onMouseDown = function (event) {
       this.button = event.event.button;
 
       if (this.button == 0) {
@@ -158,7 +158,7 @@ var DrawingEnvironment = function () {
         }
       }
     }
-    this.omniTool.onMouseMove = function (event) {
+    paper.view.onMouseMove = function (event) {
       paper.project.activeLayer.selected = false;
       let hit = this.hitTestActiveLayer(event.point);
       if (hit) {
@@ -168,7 +168,7 @@ var DrawingEnvironment = function () {
         }
       }
     }
-    this.omniTool.onMouseDrag = function (event) {
+    paper.view.onMouseDrag = function (event) {
       if (this.button == 0) {
         paper.project.activeLayer.selected = false;
         this.currentPath.add(event.point);
@@ -181,7 +181,7 @@ var DrawingEnvironment = function () {
         }
       }
     }
-    this.omniTool.onMouseUp = function (event) {
+    paper.view.onMouseUp = function (event) {
       if (this.button == 0) {
         this.currentPath.simplify(10);
         this.currentPath.name = "Stroke-" + this.currentPath.toString().hashCode();
@@ -195,7 +195,7 @@ var DrawingEnvironment = function () {
         paper.project.activeLayer.children[2].removeChildren();
       }
     }
-    this.omniTool.onKeyDown = function (event) {
+    paper.view.onKeyDown = function (event) {
       if (event.modifiers.control) {
         if(event.key == 'z') {
           // If pressing the Undo shortcut...
@@ -212,7 +212,7 @@ var DrawingEnvironment = function () {
         }
       }
     }
-    this.omniTool.processDoCommand = function(drawingLayer, commandLayer, reverseLayer){
+    paper.view.processDoCommand = function(drawingLayer, commandLayer, reverseLayer){
       let command = commandLayer.lastChild;
       if (command) {
         // If this item's name starts with the removeCmd...
@@ -248,7 +248,7 @@ var DrawingEnvironment = function () {
         }
       }
     }
-    this.omniTool.saveItemStateForUndo = function(item){
+    paper.view.saveItemStateForUndo = function(item){
       // If an object doesn't have a name, give it one :)
       if(!item.name){
         item.name = "ForeignObject-"+item.toString().hashCode();
@@ -260,7 +260,7 @@ var DrawingEnvironment = function () {
       // Clear the redo "history" (it's technically invalid now...)
       paper.project.activeLayer.children[2].removeChildren();
     }
-    this.omniTool.hitTestActiveLayer = function (point) {
+    paper.view.hitTestActiveLayer = function (point) {
       return paper.project.hitTest(point, {
         segments: true,
         stroke: true,
