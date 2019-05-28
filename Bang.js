@@ -472,18 +472,20 @@ var DrawingEnvironment = function () {
     this.resizer   = document.querySelector('.resizer'  );
 
     drawingEnvironment.startWidth = parseInt(document.defaultView.getComputedStyle( drawingEnvironment.resizable ).width,  10);
-    drawingEnvironment.startHeight = Math.min(512, 
-      drawingEnvironment.startWidth, parseInt(document.defaultView.getComputedStyle( drawingEnvironment.resizable ).height, 10));
+    drawingEnvironment.startHeight = Math.min(512, drawingEnvironment.startWidth);
     drawingEnvironment.resizable.style.height = drawingEnvironment.startHeight + 'px';
     paper.view.viewSize.set(drawingEnvironment.startWidth, drawingEnvironment.startHeight);
-
-    this.resizer.addEventListener( 'mousedown', (e) => {
+    
+    this.initResize = function(e) {
       drawingEnvironment.startX = e.clientX; drawingEnvironment.startY = e.clientY;
       drawingEnvironment.startWidth  = parseInt(document.defaultView.getComputedStyle( drawingEnvironment.resizable ).width,  10);
       drawingEnvironment.startHeight = parseInt(document.defaultView.getComputedStyle( drawingEnvironment.resizable ).height, 10);
       document.documentElement.addEventListener('mousemove', drawingEnvironment.doResize, false);
+      document.documentElement.addEventListener('touchmove', drawingEnvironment.doResize, false);
       document.documentElement.addEventListener('mouseup', drawingEnvironment.stopResize, false);
-    }, false );
+      document.documentElement.addEventListener('touchend', drawingEnvironment.stopResize, false);
+      document.documentElement.addEventListener('touchcancel', drawingEnvironment.stopResize, false);
+    }
     this.doResize = function(e) {
       let width  = (drawingEnvironment.startWidth  + e.clientX - drawingEnvironment.startX);
       let height = (drawingEnvironment.startHeight + e.clientY - drawingEnvironment.startY);
@@ -492,9 +494,14 @@ var DrawingEnvironment = function () {
       paper.view.viewSize.set(width, height);
     }
     this.stopResize = function(e) {
-      document.documentElement.removeEventListener('mousemove', drawingEnvironment.doResize, false);    
-      document.documentElement.removeEventListener('mouseup', drawingEnvironment.stopResize, false);
+      document.documentElement.removeEventListener('mousemove', drawingEnvironment.doResize, false);   
+      document.documentElement.removeEventListener('touchmove', drawingEnvironment.doResize, false);   
+      document.documentElement.removeEventListener('mouseup', drawingEnvironment.stopResize, false);  
+      document.documentElement.removeEventListener('touchend', drawingEnvironment.stopResize, false);
+      document.documentElement.removeEventListener('touchcancel', drawingEnvironment.stopResize, false);
     }
+    this.resizer.addEventListener( 'mousedown',  drawingEnvironment.initResize, false );
+    this.resizer.addEventListener( 'touchstart', this.initResize, false );
   }
 
 
