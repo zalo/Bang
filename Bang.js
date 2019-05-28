@@ -1,48 +1,22 @@
-// Hash generation
-String.prototype.hashCode = function() {
-  var hash = 0;
-  if (this.length == 0) {
-      return hash;
-  }
-  for (var i = 0; i < this.length; i++) {
-      var char = this.charCodeAt(i);
-      hash = ((hash<<5)-hash)+char;
-      hash = hash & hash; // Convert to 32bit integer
-  }
-  return hash;
-}
-
 var DrawingEnvironment = function () {
-  //this.fullEditor = document.currentScript.getAttribute("full") == "enabled";
+  this.forceMobile = document.currentScript.getAttribute("forceMobile") == "true";
   this.movePath = true;
   this.brushWidth = 5;
   this.skinningWidth = 3;
   this.frameRate = 24;
   this.removeCmd = 'Remove-';
-
+  this.forcedButton = -1;
   this.reader = new FileReader();
 
+  // Setup the Canvas, Project, Tools, and Callbacks
   this.init = function () {
-    // Create the Canvas Element
-    //this.canvas = document.createElement('canvas');
-    //this.canvas.id = "DrawingEnvironmentCanvas";
-    //this.canvas.width = 640;
-    //this.canvas.height = 480;
-    ////this.canvas.setAttribute("resize", "true");
-    //this.canvas.setAttribute("hidpi", "off"); // Test this for now
-    ////this.canvas.setAttribute("oncontextmenu", "return false;");
-    //document.currentScript.parentNode.insertBefore(this.canvas, document.currentScript.nextSibling);
-
-    // Only execute our code once the DOM is ready
+    // Only execute our setup code once the DOM is ready
     window.onload = function () {
+      // Setup a Base paper.js Project
       drawingEnvironment.canvas = document.getElementById("DrawingEnvironmentCanvas");
-      drawingEnvironment.canvas.setAttribute("oncontextmenu", "return false;");
-      let parentWidth = drawingEnvironment.calculateDimension();
-      if(drawingEnvironment.canvas.width != parentWidth){
-        drawingEnvironment.canvas.width  = parentWidth;
-        drawingEnvironment.canvas.height = parentWidth;
-      }
       paper.setup("DrawingEnvironmentCanvas");
+
+      // Set up a Base Bang Project
       paper.project.activeLayer.name = "Frame-0";
       paper.project.activeLayer.addChildren(
         new paper.Group({ name:'Drawing' }), 
@@ -51,34 +25,28 @@ var DrawingEnvironment = function () {
 
       // Register Animation and Resizing Callbacks
       //paper.view.onFrame  = function(event) { }
-      paper.view.onResize = function(event) {
-        //let parentWidth = drawingEnvironment.calculateDimension();
-        //if(drawingEnvironment.canvas.width != parentWidth){
-        //  drawingEnvironment.canvas.width  = parentWidth;
-        //  drawingEnvironment.canvas.height = parentWidth;
-        //}
-      }
+      paper.view.onResize = function(event) { }
 
       // Initialize the Brush/Manipulator/Eraser Tool
       drawingEnvironment.initOmniTool();
 
-      // Add the Brush Width Slider
+      // Subscribe to the Brush Width Slider (added in this.initHTML)
       document.getElementById("brushWidth").addEventListener('change', (data) => {
         drawingEnvironment.brushWidth = data.target.value;
       });
 
-      // Add the Framerate Box
+      // Subscribe to the Framerate Box (added in this.initHTML)
       document.getElementById("Framerate").addEventListener('change', (data) => {
         drawingEnvironment.frameRate = data.target.value;
       });
 
       // Allow users to upload SVGs from past sessions
       document.getElementById("svg-file").addEventListener('input', () => {
-        // Read the file!
+        // Load, Read, and Process the file!
         drawingEnvironment.reader.readAsText(document.getElementById("svg-file").files[0]);
       });
 
-      // Process the uploaded file
+      // Schedule processsing the uploaded file
       drawingEnvironment.reader.addEventListener("load", () => {
         paper.project.importSVG(drawingEnvironment.reader.result, {
           expandShapes: true,
@@ -105,7 +73,7 @@ var DrawingEnvironment = function () {
               if (removeFirstLater) { paper.project.layers[0].remove(); }
               paper.project.layers[layerIndex].activate();
             } else {
-              // Otherwise just import this .svg dumbly
+              // Otherwise just import this as a dumb .svg
               console.log("Static SVG Loading Success! Found " + item.children.length + " groups.");
               paper.project.activeLayer.children[0].addChild(item);
             }
@@ -118,22 +86,21 @@ var DrawingEnvironment = function () {
     }
   }
 
-  this.calculateDimension = function(){
-    let minWindows = Math.min(drawingEnvironment.canvas.parentElement.clientWidth, 
-                    drawingEnvironment.canvas.parentElement.clientHeight,
-                    document.documentElement.clientWidth, 
-                    document.documentElement.clientHeight, 
-                    window.innerWidth, window.innerHeight);
-    return Math.min(Math.round( minWindows * 0.9), 512);
-  }
-
   // Initialize the callbacks for the mouse tool
   this.initOmniTool = function () {
+    //Prevent Right-Clicking from bringing up the context menu
+    this.canvas.setAttribute("oncontextmenu", "return false;");
+
     this.omniTool = new paper.Tool();
     this.omniTool.lastTolerance = 5;
     this.omniTool.onMouseDown = function (event) {
       drawingEnvironment.clearPreview();
-      this.button = event.event.button;
+      this.button = drawingEnvironment.forcedButton == -1 ? 
+                      event.event.button : 
+                      drawingEnvironment.forcedButton;
+
+      // A little bit of eraser leighway 
+      this.minDistance = this.button == 2 ? this.lastTolerance * 2 : 0;
 
       if ((!this.button) || this.button <= 0) {
         // Begin creating a new brush stroke
@@ -171,21 +138,20 @@ var DrawingEnvironment = function () {
 
         // Delete this element
         if (this.button == 2) {
-          if (hitResult.type == 'segment') {
-            if (hitResult.segment.path.segments.length == 2) {
-              paper.project.activeLayer.children[1].addChild(hitResult.item);
-            } else {
-              this.saveItemStateForUndo(hitResult.item);
-              hitResult.segment.remove();
-            }
-          } else if (hitResult.type == 'stroke' || hitResult.type == 'fill') {
+          if ( hitResult.type == 'stroke' || 
+               hitResult.type == 'fill'   || 
+               hitResult.segment.path.segments.length <= 2) {
             this.saveItemStateForUndo(hitResult.item);
             hitResult.item.remove();
+          } else if (hitResult.type == 'segment') {
+            this.saveItemStateForUndo(hitResult.item);
+            hitResult.segment.remove();
           }
           return;
         }
       }
     }
+
     this.omniTool.onMouseMove = function (event) {
       paper.project.activeLayer.selected = false;
       let hit = this.hitTestActiveLayer(event.point);
@@ -196,91 +162,65 @@ var DrawingEnvironment = function () {
         }
       }
     }
+
     this.omniTool.onMouseDrag = function (event) {
       if ((!this.button) || this.button <= 0) {
         paper.project.activeLayer.selected = false;
         this.currentPath.add(event.point);
-      } else {
+      } else if(this.button == 1) {
         if (this.currentSegment) {
           this.currentSegment.point = this.currentSegment.point.add(event.delta);
           //this.currentPath.smooth();
         } else if (this.currentPath) {
           this.currentPath.position = this.currentPath.position.add(event.delta);
         }
+      } else if(this.button == 2) {
+        let hitResult = this.hitTestActiveLayer(event.point);
+        if (!hitResult) { return; }
+        if ( hitResult.type == 'stroke' || 
+          hitResult.type == 'fill'   || 
+          hitResult.segment.path.segments.length <= 2) {
+          this.saveItemStateForUndo(hitResult.item);
+          hitResult.item.remove();
+        } else if (hitResult.type == 'segment') {
+          this.saveItemStateForUndo(hitResult.item);
+          hitResult.segment.remove();
+        }
       }
     }
+
     this.omniTool.onMouseUp = function (event) {
       if ((!this.button) || this.button <= 0) {
         this.currentPath.simplify(10);
-        this.currentPath.name = "Stroke-" + this.currentPath.toString().hashCode();
+        this.currentPath.name = "Stroke-" + drawingEnvironment.
+                                  stringHashCode(this.currentPath.toString());
         this.currentPath.addTo(paper.project.activeLayer.children[0]);
 
         // Add Undo Object to Remove Stroke Later
         paper.project.activeLayer.children[1].addChild(
-          new paper.Group({ name: drawingEnvironment.removeCmd+this.currentPath.name }));
+          new paper.Group({ name: drawingEnvironment.removeCmd + this.currentPath.name }));
           
         // Clear the redo "history" (it's technically invalid now...)
         paper.project.activeLayer.children[2].removeChildren();
       }
     }
+
     this.omniTool.onKeyDown = function (event) {
-      drawingEnvironment.clearPreview();
       if (event.modifiers.control) {
         if(event.key == 'z') {
-          // If pressing the Undo shortcut...
-          this.processDoCommand(
-            paper.project.activeLayer.children[0],
-            paper.project.activeLayer.children[1],
-            paper.project.activeLayer.children[2]);
+          drawingEnvironment.undo();
         } else if(event.key == 'y') {
-          // If pressing the Redo shortcut...
-          this.processDoCommand(
-            paper.project.activeLayer.children[0],
-            paper.project.activeLayer.children[2],
-            paper.project.activeLayer.children[1]);
+          drawingEnvironment.redo();
         }
       }
     }
-    this.omniTool.processDoCommand = function(drawingLayer, commandLayer, reverseLayer){
-      let command = commandLayer.lastChild;
-      if (command) {
-        // If this item's name starts with the removeCmd...
-        if(command.name && command.name.startsWith(drawingEnvironment.removeCmd)){
-          // Find this item and "delete" it...
-          let condemnedName = command.name.substring(
-            drawingEnvironment.removeCmd.length);
-          let condemnedStroke = drawingLayer.getItem({
-            match: (item)=>{ return item.name == condemnedName; }
-          });
-          reverseLayer.addChild(condemnedStroke);
-          command.remove();
-        } else {
-          // Check and see if this item already exists
-          let strokeToReplace = drawingLayer.getItem({
-            match: (item)=>{ return item.name == command.name; }
-          });
-          if (strokeToReplace) {
-            // If it does exist, just replace it
-            let clone = strokeToReplace.clone();
-            clone.name = strokeToReplace.name;
-            reverseLayer.addChild(clone);
 
-            // Use 'replaceWith' to preserve layer order!
-            strokeToReplace.replaceWith(command);
-          } else {
-            // If it does not exist, create it
-            drawingLayer.addChild(command);
-            reverseLayer.addChild(new paper.Group({ 
-                name: drawingEnvironment.removeCmd+command.name 
-            }));
-          }
-        }
-      }
-    }
+    // Store this item's current state in the Undo Queue
     this.omniTool.saveItemStateForUndo = function(item){
       // If an object doesn't have a name, give it one :)
       if(!item.name){
-        item.name = "ForeignObject-"+item.toString().hashCode();
+        item.name = "ForeignObject-" + drawingEnvironment.
+                                        stringHashCode(item.toString());
       }
       let clone = item.clone();
       clone.name = item.name;
@@ -289,6 +229,8 @@ var DrawingEnvironment = function () {
       // Clear the redo "history" (it's technically invalid now...)
       paper.project.activeLayer.children[2].removeChildren();
     }
+
+    // Check if the mouse is hitting anything in this frame right now...
     this.omniTool.hitTestActiveLayer = function (point) {
       return paper.project.hitTest(point, {
         segments: true,
@@ -299,6 +241,61 @@ var DrawingEnvironment = function () {
           return hit.item.layer == paper.project.activeLayer;
         }
       });
+    }
+  }
+
+  // Dequeue the last undo element, and queue its inverse into the redo queue
+  this.undo = function() {
+    this.processDoCommand(
+      paper.project.activeLayer.children[0],
+      paper.project.activeLayer.children[1],
+      paper.project.activeLayer.children[2]);
+  }
+
+  // Dequeue the last redo element, and queue its inverse into the undo queue
+  this.redo = function() {
+    this.processDoCommand(
+      paper.project.activeLayer.children[0],
+      paper.project.activeLayer.children[2],
+      paper.project.activeLayer.children[1]);
+  }
+
+  // Dequeue a do element, and queue its reverse into the ...reverse queue
+  this.processDoCommand = function(drawingLayer, commandLayer, reverseLayer){
+    drawingEnvironment.clearPreview();
+    let command = commandLayer.lastChild;
+    if (command) {
+      // If this item's name starts with the removeCmd...
+      if(command.name && command.name.startsWith(this.removeCmd)){
+        // Find this item and "delete" it...
+        let condemnedName = command.name.substring(
+          this.removeCmd.length);
+        let condemnedStroke = drawingLayer.getItem({
+          match: (item)=>{ return item.name == condemnedName; }
+        });
+        reverseLayer.addChild(condemnedStroke);
+        command.remove();
+      } else {
+        // Check and see if this item already exists
+        let strokeToReplace = drawingLayer.getItem({
+          match: (item)=>{ return item.name == command.name; }
+        });
+        if (strokeToReplace) {
+          // If it *does* exist, just replace it
+          let clone = strokeToReplace.clone();
+          clone.name = strokeToReplace.name;
+          reverseLayer.addChild(clone);
+
+          // Use 'replaceWith' to preserve layer order!
+          strokeToReplace.replaceWith(command);
+        } else {
+          // If it does not exist, create it
+          drawingLayer.addChild(command);
+          reverseLayer.addChild(new paper.Group({ 
+              name: this.removeCmd+command.name 
+          }));
+        }
+      }
     }
   }
 
@@ -318,6 +315,7 @@ var DrawingEnvironment = function () {
     return animationString;
   }
 
+  // Generate the Animated SVG from the current paper.js project
   this.createSVG = function(){
     // Ensure that all frames (but the first) are opaque and hidden by default
     for (let i = 0; i < paper.project.layers.length; i++) {
@@ -329,29 +327,42 @@ var DrawingEnvironment = function () {
     svgString = svgString.substring(0, svgString.length - 6) +
       this.generateAnimationCSS(this.frameRate) +
       svgString.substring(svgString.length - 6);
-    this.updateOnionSkinning();
+    this.updateOnionSkinning(false);
     return svgString;
   }
 
+  // Trigger a download of the Generated SVG
   this.saveSVG = function () {
-    let fileName = "drawingExport.svg";
-    let url = "data:image/svg+xml;utf8," + encodeURIComponent(this.createSVG());
     let link = document.createElement("a");
-    link.download = fileName;
-    link.href = url;
+    link.download = "drawingExport.svg";
+    link.href = "data:image/svg+xml;utf8," + 
+                  encodeURIComponent(this.createSVG());
     link.click();
   }
 
+  // Adds the Generated SVG to the page for viewing
   this.previewSVG = function() {
-    let newSvg = document.getElementById('SVG Preview');
-    if(newSvg.innerHTML) {
-      newSvg.innerHTML = '';
+    let SVGPreview = document.getElementById('SVG Preview');
+    let SVGText = document.getElementById('SVG Text');
+    if(SVGPreview.innerHTML) {
+      SVGPreview.innerHTML = '';
+      SVGText.innerHTML = '';
     } else {
-      newSvg.innerHTML = '<h2>Preview: </h2>' + this.createSVG();
+      SVGPreview.innerHTML = '<h2>Preview: </h2>' + this.createSVG();
+      // Also add the text box for copying on iPads...
+      if (this.isMobile) {
+        SVGText.innerHTML = '<input id="SVG Box" type="text" size="100"><br>';
+        setTimeout(function() {
+          document.getElementById('SVG Box').value = drawingEnvironment.createSVG();
+        }, 500);
+      }
     }
   }
+
+  // Destroy the current SVG Preview (and Text Box)
   this.clearPreview = function(){
     document.getElementById('SVG Preview').innerHTML = '';
+    document.getElementById('SVG Text').innerHTML = '';
   }
 
   // Create a new frame if one doesn't exist
@@ -383,11 +394,16 @@ var DrawingEnvironment = function () {
       nextFrameLayer.copyContent(currentLayer);
       paper.project.insertLayer(currentLayer.index + 1, nextFrameLayer);
       nextFrameLayer.activate();
-      this.updateOnionSkinning();
     } else {
+      currentLayer.removeChildren();
       currentLayer.copyContent(paper.project.layers[Math.max(0, currentLayer.index - 1)]);
-      currentLayer.opacity = 1;
     }
+    // This is deeply unsatisfying... Find a way to copy content without adding " 1" at the end...
+    // Perhaps a recursive de-" 1"-ing function...
+    paper.project.activeLayer.children[0].name = "Drawing";
+    paper.project.activeLayer.children[1].name = "Undo";
+    paper.project.activeLayer.children[2].name = "Redo";
+    this.updateOnionSkinning();
   }
 
   // Go back one frame
@@ -398,8 +414,8 @@ var DrawingEnvironment = function () {
   }
 
   // Ensure all frames are named and rendering properly
-  this.updateOnionSkinning = function () {
-    this.clearPreview();
+  this.updateOnionSkinning = function (clear = true) {
+    if(clear) { this.clearPreview(); }
     let currentActiveIndex = paper.project.activeLayer.index;
     let minIndex = Math.max(0, currentActiveIndex - this.skinningWidth);
     let maxIndex = Math.min(paper.project.layers.length, currentActiveIndex + this.skinningWidth);
@@ -412,7 +428,8 @@ var DrawingEnvironment = function () {
         paper.project.layers[i].opacity = 1;
       } else if (i >= minIndex && i <= maxIndex) {
         paper.project.layers[i].visible = true;
-        paper.project.layers[i].opacity = (1.0 - ((Math.abs(i - currentActiveIndex)) / (this.skinningWidth + 1))) * 0.25;
+        paper.project.layers[i].opacity = 
+          (1.0 - ((Math.abs(i - currentActiveIndex)) / (this.skinningWidth + 1))) * 0.25;
       } else {
         paper.project.layers[i].visible = false;
         paper.project.layers[i].opacity = 0;
@@ -420,7 +437,64 @@ var DrawingEnvironment = function () {
     }
   }
 
+  // Add DOM Elements to the Document for user interaction
+  this.initHTML = function() {
+    // Massive Mobile Device Detection String; how many years will this work for?
+    // https://stackoverflow.com/a/3540295/11187355
+    this.isMobile = false;
+    if(this.forceMobile || /(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|ipad|iris|kindle|Android|Silk|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino/i.test(navigator.userAgent) 
+        || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(navigator.userAgent.substr(0,4))) { 
+        this.isMobile = true;
+    }
+
+    // Add buttons depending on whether this is a touchscreen device or not
+    let mobileButtons = '';
+    if(this.isMobile){
+      mobileButtons = '\
+        <div class="ProjectControls">\
+        <input type="button" value="Brush" onclick="drawingEnvironment.forcedButton = 0;"> | \
+        <input type="button" value="Move" onclick="drawingEnvironment.forcedButton = 1;"> | \
+        <input type="button" value="Erase" onclick="drawingEnvironment.forcedButton = 2;"> |  | \
+        <input type="button" value="Undo" onclick="drawingEnvironment.undo();"> | \
+        <input type="button" value="Redo" onclick="drawingEnvironment.redo();"> \
+        </div>';
+    }
+
+    // Add the main buttons that everyone will use
+    document.currentScript.insertAdjacentHTML('afterend', '\
+      <canvas id="DrawingEnvironmentCanvas" width="100" height="100" hidpi="on" style="border: #9999 1px solid; width: 100%; max-width: 512px;" resize></canvas>\
+      ' + mobileButtons + '\
+      <div class="ProjectControls">\
+          <b>Brush Width: </b> <input type="range" min="1" max="100" value="10" class="slider" id="brushWidth"> | \
+          <input type="button" value="Prev" onclick="drawingEnvironment.prevFrame();"> | \
+          <input type="button" value="Next" onclick="drawingEnvironment.nextFrame();"> | \
+          <input type="button" value="Duplicate" onclick="drawingEnvironment.duplicateFrame();">\
+      </div>\
+      <div class="ExportControls">\
+          Load from SVG: <input id="svg-file" type="file" accept="image/svg+xml"/> | \
+          <input type="button" value="Save to SVG" onclick="drawingEnvironment.saveSVG();">\
+      </div>\
+      <div class="PlaybackControls">\
+          <input type="button" value="Play" onclick="drawingEnvironment.previewSVG();"> | \
+          Framerate: <input id="Framerate" type="number" value="24" min="0" max="240">\
+      </div>\
+      <div id="SVG Preview"></div><div id="SVG Text"></div>');
+  }
+
+  // Hash Generation for unique undo identifiers
+  this.stringHashCode = function() {
+    var hash = 0;
+    if (this.length == 0) { return hash; }
+    for (var i = 0; i < this.length; i++) {
+        var char = this.charCodeAt(i);
+        hash = ((hash<<5)-hash)+char;
+        hash = hash & hash; // Convert to 32bit integer
+    }
+    return hash;
+  }
+
   // Initialize on construct
+  this.initHTML();
   this.init();
 }
 
