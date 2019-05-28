@@ -1,7 +1,8 @@
 var DrawingEnvironment = function () {
-  this.forceMobile = document.currentScript.getAttribute("forceMobile") == "true";  // Whether to force the mobile buttons to appear
+  this.resizable = document.currentScript.getAttribute("resizable");                // Wraps the canvas in resizing handles
   this.width = document.currentScript.getAttribute("width");                        // Starting Width
   this.height = document.currentScript.getAttribute("height");                      // Starting Height
+  this.forceMobile = document.currentScript.getAttribute("forceMobile") == "true";  // Whether to force the mobile buttons to appear
   this.movePath = true;                                                             // Whether to move paths or add segments with middle click
   this.brushWidth = 5;                                                              // The width of the brush
   this.skinningWidth = 3;                                                           // The number of onion-skinning frames visible in each direction
@@ -235,7 +236,13 @@ var DrawingEnvironment = function () {
 
     // Process Keyboard Shortcuts (just Undo/Redo atm)
     this.omniTool.onKeyDown = function (event) {
-      if (event.modifiers.control) {
+      if(event.key == 'right') {
+        drawingEnvironment.nextFrame();
+      } else if(event.key == 'left') {
+        drawingEnvironment.prevFrame();
+      } else if(event.key == 'delete') {
+        drawingEnvironment.deleteFrame();
+      } else if (event.modifiers.control) {
         if(event.key == 'z') {
           drawingEnvironment.undo();
         } else if(event.key == 'y') {
@@ -414,6 +421,20 @@ var DrawingEnvironment = function () {
     this.updateOnionSkinning();
   }
 
+  // Delete the elements in this frame first (allows for undo's), then the frame itself (no undo)
+  this.deleteFrame = function () {
+    if(paper.project.activeLayer.children[0].children.length > 0){
+      for(let i = paper.project.activeLayer.children[0].children.length-1; i >= 0; i--){
+        let item = paper.project.activeLayer.children[0].children[i];
+        this.omniTool.saveItemStateForUndo(item);
+        item.remove();
+      }
+    } else {
+      paper.project.activeLayer.remove();
+    }
+    this.updateOnionSkinning();
+  }
+
   // Ensure all frames are named and rendering properly
   this.updateOnionSkinning = function (clear = true) {
     if(clear) { this.clearPreview(); }
@@ -469,7 +490,8 @@ var DrawingEnvironment = function () {
           <b>Brush Width: </b> <input type="range" min="1" max="100" value="10" class="slider" id="brushWidth"> | \
           <input type="button" value="Prev" onclick="drawingEnvironment.prevFrame();"> | \
           <input type="button" value="Next" onclick="drawingEnvironment.nextFrame();"> | \
-          <input type="button" value="Duplicate" onclick="drawingEnvironment.duplicateFrame();">\
+          <input type="button" value="Duplicate" onclick="drawingEnvironment.duplicateFrame();"> |\
+          <input type="button" value="Delete" onclick="drawingEnvironment.deleteFrame();">\
       </div>\
       <div class="ExportControls">\
           Load from SVG: <input id="svg-file" type="file" accept="image/svg+xml"/> | \
