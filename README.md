@@ -9,8 +9,10 @@
 - **Brush Width**: Change the width of the brush
 - **Prev/Next**: Navigate the playhead forward and backward one frame
 - **Duplicate**: Either creates a new frame with the contents of this frame (or copies the content from the last frame)
+- **Delete**: Either clears the current frame, or (if empty) removes the frame from the timeline
 - **Load from SVG**: Loads a prior session or an arbitrary foreign SVG
 - **Save to SVG**: Saves this session as an animated SVG (preserving undo)
+- **Play**: Toggles showing an example SVG that demonstrates how it will look when exported
 
 ## About
 
