@@ -485,7 +485,6 @@ var DrawingEnvironment = function () {
     paper.view.viewSize.set(drawingEnvironment.startWidth, drawingEnvironment.startHeight);
     
     this.initResize = function(e) {
-      console.log("Init Resize");
       drawingEnvironment.startX = e.clientX; drawingEnvironment.startY = e.clientY;
       drawingEnvironment.startWidth  = parseInt(document.defaultView.getComputedStyle( drawingEnvironment.resizable ).width,  10);
       drawingEnvironment.startHeight = parseInt(document.defaultView.getComputedStyle( drawingEnvironment.resizable ).height, 10);
@@ -496,7 +495,11 @@ var DrawingEnvironment = function () {
       document.documentElement.addEventListener('touchcancel', drawingEnvironment.stopResize, false);
     }
     this.doResize = function(e) {
-      console.log("Do Resize");
+      if(e.changedTouches && e.changedTouches.length > 0){
+        e.clientX = e.changedTouches[0].clientX;
+        e.clientY = e.changedTouches[0].clientY;
+      }
+      console.log("Do Resize: "+ e.clientX + ", "+ e.clientY);
       let width  = (drawingEnvironment.startWidth  + e.clientX - drawingEnvironment.startX);
       let height = (drawingEnvironment.startHeight + e.clientY - drawingEnvironment.startY);
       drawingEnvironment.resizable.style.width  = width  + 'px';
@@ -504,7 +507,6 @@ var DrawingEnvironment = function () {
       paper.view.viewSize.set(width, height);
     }
     this.stopResize = function(e) {
-      console.log("End Resize");
       document.documentElement.removeEventListener('mousemove', drawingEnvironment.doResize, false);   
       document.documentElement.removeEventListener('touchmove', drawingEnvironment.doResize, false);   
       document.documentElement.removeEventListener('mouseup', drawingEnvironment.stopResize, false);  
