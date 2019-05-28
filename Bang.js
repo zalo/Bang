@@ -545,7 +545,7 @@ var DrawingEnvironment = function () {
     let resizableStart = resizableEnd = '';
     if(this.isResizable){
       resizableStart = '<div class="resizable" style="background: white; width: ' + this.width + '; position: relative;">';
-      resizableEnd = '<div class="resizer" style="width: 10px; height: 10px; background: black; position:absolute; right: 0; bottom: 0; cursor: se-resize; user-select: none;"> </div></div>';
+      resizableEnd = '<div class="resizer" style="width: 15px; height: 15px; background: black; position:absolute; right: 0; bottom: 0; cursor: se-resize; user-select: none;">  </div></div>';
     }
     document.currentScript.insertAdjacentHTML('afterend', resizableStart+'\
         <canvas id="DrawingEnvironmentCanvas" hidpi="on" style="border: #9999 1px solid; width: 100%; height: 100%;"></canvas>\
