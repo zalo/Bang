@@ -3,11 +3,6 @@
 
 @import "{{ site.theme }}";
 
-canvas[resize] {
-  border: #9999 1px solid;
-  width: 100%;
-}
-
 div.wrapper {
   margin: auto;
   width: 512px;
