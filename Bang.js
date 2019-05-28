@@ -1,7 +1,7 @@
 // Mega Hack: Redirect the console.log to this one div that programmers hate (for iOS debugging)
 function customLog(obj) {
   let OutputText = document.getElementById('Message Text');
-  OutputText.innerHTML += "<div>" + obj + "</div>\r\n";
+  OutputText.innerHTML = "<div>" + obj + "</div>\r\n" + OutputText.innerHTML;
 }
 console.log = customLog;
 console.error = customLog;
@@ -505,6 +505,7 @@ var DrawingEnvironment = function () {
       drawingEnvironment.resizable.style.width  = width  + 'px';
       drawingEnvironment.resizable.style.height = height + 'px';
       paper.view.viewSize.set(width, height);
+      console.log("Resize output: "+ paper.view.viewSize.width + ", "+ paper.view.viewSize.height);
     }
     this.stopResize = function(e) {
       document.documentElement.removeEventListener('mousemove', drawingEnvironment.doResize, false);   
