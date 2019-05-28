@@ -362,7 +362,8 @@ var DrawingEnvironment = function () {
       SVGPreview.innerHTML = '';
       SVGText.innerHTML = '';
     } else {
-      SVGPreview.innerHTML = '<h2>Preview: </h2>' + this.createSVG();
+      SVGPreview.innerHTML = '<h2>Preview: </h2><img src="'+
+        "data:image/svg+xml;utf8,"+encodeURIComponent(this.createSVG())+'">';
       // Also add the text box for copying on iPads...
       if (this.isMobile) {
         SVGText.innerHTML = '<input id="SVG Box" type="text" size="100"><br>';
