@@ -485,6 +485,10 @@ var DrawingEnvironment = function () {
     paper.view.viewSize.set(drawingEnvironment.startWidth, drawingEnvironment.startHeight);
     
     this.initResize = function(e) {
+      if(e.changedTouches && e.changedTouches.length > 0){
+        e.clientX = e.changedTouches[0].clientX;
+        e.clientY = e.changedTouches[0].clientY;
+      }
       drawingEnvironment.startX = e.clientX; drawingEnvironment.startY = e.clientY;
       drawingEnvironment.startWidth  = parseInt(document.defaultView.getComputedStyle( drawingEnvironment.resizable ).width,  10);
       drawingEnvironment.startHeight = parseInt(document.defaultView.getComputedStyle( drawingEnvironment.resizable ).height, 10);
