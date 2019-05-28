@@ -4,7 +4,6 @@ var DrawingEnvironment = function () {
   this.forceMobile = document.currentScript.getAttribute("forceMobile") == "true";  // Whether to force the mobile buttons to appear
   this.movePath = true;                                                             // Whether to move paths or add segments with middle click
   this.brushWidth = 5;                                                              // The width of the brush
-  this.skinningWidth = 3;                                                           // The number of onion-skinning frames visible in each direction
   this.frameRate = 10;                                                              // The current framerate to export to the .svg
   this.removeCmd = 'Remove-';                                                       // Prefix on remove "do" commands
   this.forcedButton = -1;                                                           // Used for forcing brush/move/eraser on mobile
@@ -81,6 +80,7 @@ var DrawingEnvironment = function () {
             } else {
               // Otherwise just import this as a dumb .svg
               console.log("Static SVG Loading Success! Found " + item.children.length + " groups.");
+              item.fitBounds(paper.view.bounds);
               paper.project.activeLayer.children[0].addChild(item);
             }
           },
@@ -97,13 +97,26 @@ var DrawingEnvironment = function () {
 
   // Initialize the callbacks for the mouse/touch tool
   this.initOmniTool = function () {
-    //Prevent Right-Clicking from bringing up the context menu
+    // Prevent Right-Clicking from bringing up the context menu
     this.canvas.setAttribute("oncontextmenu", "return false;");
-
     this.omniTool = new paper.Tool();
     this.omniTool.lastTolerance = 5;
+    this.omniTool.selectedSegments = [];
+
+    // Check if the mouse is hitting anything in this frame right now...
+    this.omniTool.hitTestActiveLayer = function (point) {
+      return paper.project.hitTest(point, {
+        segments: true,
+        stroke: true,
+        fill: true,
+        tolerance: this.lastTolerance,
+        match: (hit) => {
+          return hit.item.layer == paper.project.activeLayer;
+        }
+      });
+    }
+
     this.omniTool.onMouseDown = function (event) {
-      drawingEnvironment.clearPreview();
       this.button = drawingEnvironment.forcedButton == -1 ? 
                       event.event.button : 
                       drawingEnvironment.forcedButton;
@@ -112,6 +125,7 @@ var DrawingEnvironment = function () {
       this.minDistance = this.button == 2 ? this.lastTolerance * 2 : 0;
 
       if ((!this.button) || this.button <= 0) {
+        drawingEnvironment.clearPreview();
         // Begin creating a new brush stroke
         this.currentPath = new paper.Path();
         this.currentPath.strokeColor = 'black';
@@ -122,34 +136,51 @@ var DrawingEnvironment = function () {
         this.currentSegment = this.currentPath = null;
         let hitResult = this.hitTestActiveLayer(event.point);
 
-        // Return if we didn't hit anything
-        if (!hitResult)
-          return;
-
         // Select an element for movement
         if (this.button == 1) {
-          this.currentPath = hitResult.item;
-          if(this.currentPath){
-            this.saveItemStateForUndo(hitResult.item);
-            if (hitResult.type == 'segment') {
-              this.currentSegment = hitResult.segment;
-            } else if (hitResult.type == 'stroke' || hitResult.type == 'fill') {
-              if (drawingEnvironment.movePath) {
-                this.currentSegment = null;
-              } else {
-                let location = hitResult.location;
-                this.currentSegment = this.currentPath.insert(location.index + 1, event.point);
-                this.currentPath.smooth();
+          if (!hitResult) {
+            // Create selection bounds rectangle
+            this.initialSelectionPoint = event.point.clone();
+            this.selectionRectPath = new paper.Path.Rectangle({
+                from: event.point,
+                to: event.point
+            });
+          } else if(this.selectedSegments.length > 0) {
+            for(let i = paper.project.selectedItems.length-1; i >= 0; i--){
+              this.saveItemStateForUndo(paper.project.selectedItems[i]);
+            }
+          } else if(hitResult) {
+            this.currentPath = hitResult.item;
+            if(this.currentPath){
+              this.saveItemStateForUndo(hitResult.item);
+              if (hitResult.type == 'stroke' || hitResult.type == 'fill') {
+                if (drawingEnvironment.movePath) {
+                  this.currentSegment = null;
+                } else {
+                  let location = hitResult.location;
+                  this.currentSegment = this.currentPath.insert(location.index + 1, event.point);
+                  this.currentPath.smooth();
+                }
               }
             }
           }
         }
 
+        // Return if we didn't hit anything
+        if (!hitResult)
+          return;
+
         // Delete this element
         if (this.button == 2) {
-          if ( hitResult.type == 'stroke' || 
-               hitResult.type == 'fill'   || 
-               hitResult.segment.path.segments.length <= 2) {
+          if(this.selectedSegments.length > 0){
+            for(let i = paper.project.selectedItems.length-1; i >= 0; i--){
+              let item = paper.project.selectedItems[i];
+              this.saveItemStateForUndo(item);
+              item.remove();
+            }
+          } else if ( hitResult.type == 'stroke' || 
+                      hitResult.type == 'fill'   || 
+                      hitResult.segment.path.segments.length <= 2) {
             this.saveItemStateForUndo(hitResult.item);
             hitResult.item.remove();
           } else if (hitResult.type == 'segment') {
@@ -162,28 +193,63 @@ var DrawingEnvironment = function () {
     }
 
     this.omniTool.onMouseMove = function (event) {
-      paper.project.activeLayer.selected = false;
-      let hit = this.hitTestActiveLayer(event.point);
-      if (hit) {
-        hit.item.selected = true;
-        if (hit.item.strokeWidth) {
-          this.lastTolerance = Math.max(hit.item.strokeWidth / 4.0, 5);
+      if(this.selectedSegments.length == 0) {
+        paper.project.activeLayer.selected = false;
+        let hit = this.hitTestActiveLayer(event.point);
+        if (hit) {
+          hit.item.selected = true;
+          if (hit.item.strokeWidth) {
+            this.lastTolerance = Math.max(hit.item.strokeWidth / 4.0, 5);
+          }
         }
       }
     }
 
     this.omniTool.onMouseDrag = function (event) {
       if ((!this.button) || this.button <= 0) {
+        //If Drawing...
         paper.project.activeLayer.selected = false;
         this.currentPath.add(event.point);
       } else if(this.button == 1) {
-        if (this.currentSegment) {
+        // If Dragging...
+
+        if (this.selectionRectPath) {
+          let newRect = new paper.Path.Rectangle(this.initialSelectionPoint, event.point);
+          this.selectionRectPath.replaceWith(newRect);
+          this.selectionRectPath.remove();
+          this.selectionRectPath = newRect;
+          this.selectionRectPath.bounds.selected = true;
+
+          this.selectedSegments = [];
+          for(let i = 0; i < paper.project.selectedItems.length; i++) {
+            paper.project.selectedItems[i].selected = false;
+          }
+          let toSelect = paper.project.activeLayer.children[0].getItems({
+            overlapping: newRect.bounds
+          });
+          for(let i = 0; i < toSelect.length; i++) {
+            if(toSelect[i].segments){
+              for(let j = 0; j < toSelect[i].segments.length; j++){
+                if(this.selectionRectPath.bounds.contains(toSelect[i].segments[j].point)){
+                  toSelect[i].segments[j].selected = true;
+                  this.selectedSegments.push(toSelect[i].segments[j]);
+                }
+              }
+            }
+          }
+        } else if(this.selectedSegments.length > 0) {
+          for(let i = 0; i < this.selectedSegments.length; i++) {
+            this.selectedSegments[i].point = this.selectedSegments[i].point.add(event.delta); // To Replace with more interesting drag function
+          }
+        } else if (this.currentSegment) {
           this.currentSegment.point = this.currentSegment.point.add(event.delta);
           //this.currentPath.smooth();
         } else if (this.currentPath) {
           this.currentPath.position = this.currentPath.position.add(event.delta);
         }
+
       } else if(this.button == 2) {
+        // If Erasing...
         let hitResult = this.hitTestActiveLayer(event.point);
         if (!hitResult) { return; }
         if ( hitResult.type == 'stroke' || 
@@ -199,6 +265,11 @@ var DrawingEnvironment = function () {
     }
 
     this.omniTool.onMouseUp = function (event) {
+      if(this.selectionRectPath){
+        this.selectionRectPath.remove();
+        this.selectionRectPath = null;
+        this.initialSelectionPoint = null;
+      }
       if ((!this.button) || this.button <= 0) {
         this.currentPath.simplify(10);
         this.currentPath.name = "Stroke-" + drawingEnvironment.stringHashCode(this.currentPath.toString());
@@ -225,19 +296,6 @@ var DrawingEnvironment = function () {
 
       // Clear the redo "history" (it's technically invalid now...)
       paper.project.activeLayer.children[2].removeChildren();
-    }
-
-    // Check if the mouse is hitting anything in this frame right now...
-    this.omniTool.hitTestActiveLayer = function (point) {
-      return paper.project.hitTest(point, {
-        segments: true,
-        stroke: true,
-        fill: true,
-        tolerance: this.lastTolerance,
-        match: (hit) => {
-          return hit.item.layer == paper.project.activeLayer;
-        }
-      });
     }
 
     // Process Keyboard Shortcuts (just Undo/Redo atm)
@@ -333,14 +391,15 @@ var DrawingEnvironment = function () {
   this.createSVG = function(){
     // Ensure that all frames (but the first) are opaque and hidden by default
     for (let i = 0; i < paper.project.layers.length; i++) {
-      paper.project.layers[i].visible = false;
+      paper.project.layers[i].visible = paper.project.layers.length == 1 ? true : false;
       paper.project.layers[i].opacity = 1;
     }
+    let animationString = paper.project.layers.length > 1 ? 
+                            this.generateAnimationCSS(this.frameRate) : '';
 
     let svgString = paper.project.exportSVG({ asString: true });
     svgString = svgString.substring(0, svgString.length - 6) +
-      this.generateAnimationCSS(this.frameRate) +
-      svgString.substring(svgString.length - 6);
+                animationString + svgString.substring(svgString.length - 6);
     this.updateOnionSkinning(false);
     return svgString;
   }
@@ -375,9 +434,15 @@ var DrawingEnvironment = function () {
   }
 
   // Destroy the current SVG Preview (and Text Box)
-  this.clearPreview = function(){
+  this.clearPreview = function(clearSelection = true){
     document.getElementById('SVG Preview').innerHTML = '';
     document.getElementById('SVG Text').innerHTML = '';
+    if(this.omniTool && clearSelection){
+      for(let i = 0; i < this.omniTool.selectedSegments.length; i++){
+        this.omniTool.selectedSegments[i].selected = false;
+      }
+      this.omniTool.selectedSegments = [];
+    }
   }
 
   // Create a new frame if one doesn't exist
@@ -445,9 +510,10 @@ var DrawingEnvironment = function () {
   // Ensure all frames are named and rendering properly
   this.updateOnionSkinning = function (clear = true) {
     if(clear) { this.clearPreview(); }
+    let onionSkinningWidth = this.isMobile ? 1 : 3; // The number of onion-skinning frames visible in each direction, slow on mobile!
     let currentActiveIndex = paper.project.activeLayer.index;
-    let minIndex = Math.max(0, currentActiveIndex - this.skinningWidth);
-    let maxIndex = Math.min(paper.project.layers.length, currentActiveIndex + this.skinningWidth);
+    let minIndex = Math.max(0, currentActiveIndex - onionSkinningWidth);
+    let maxIndex = Math.min(paper.project.layers.length, currentActiveIndex + onionSkinningWidth);
     for (let i = 0; i < paper.project.layers.length; i++) {
       paper.project.layers[i].name = "Frame-" + i;
 
@@ -458,7 +524,7 @@ var DrawingEnvironment = function () {
       } else if (i >= minIndex && i <= maxIndex) {
         paper.project.layers[i].visible = true;
         paper.project.layers[i].opacity = 
-          (1.0 - ((Math.abs(i - currentActiveIndex)) / (this.skinningWidth + 1))) * 0.25;
+          (1.0 - ((Math.abs(i - currentActiveIndex)) / (onionSkinningWidth + 1))) * 0.25;
       } else {
         paper.project.layers[i].visible = false;
         paper.project.layers[i].opacity = 0;
