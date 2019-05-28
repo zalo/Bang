@@ -192,8 +192,7 @@ var DrawingEnvironment = function () {
     this.omniTool.onMouseUp = function (event) {
       if ((!this.button) || this.button <= 0) {
         this.currentPath.simplify(10);
-        this.currentPath.name = "Stroke-" + drawingEnvironment.
-                                  stringHashCode(this.currentPath.toString());
+        this.currentPath.name = "Stroke-" + drawingEnvironment.stringHashCode(this.currentPath.toString());
         this.currentPath.addTo(paper.project.activeLayer.children[0]);
 
         // Add Undo Object to Remove Stroke Later
@@ -205,22 +204,11 @@ var DrawingEnvironment = function () {
       }
     }
 
-    this.omniTool.onKeyDown = function (event) {
-      if (event.modifiers.control) {
-        if(event.key == 'z') {
-          drawingEnvironment.undo();
-        } else if(event.key == 'y') {
-          drawingEnvironment.redo();
-        }
-      }
-    }
-
     // Store this item's current state in the Undo Queue
     this.omniTool.saveItemStateForUndo = function(item){
       // If an object doesn't have a name, give it one :)
       if(!item.name){
-        item.name = "ForeignObject-" + drawingEnvironment.
-                                        stringHashCode(item.toString());
+        item.name = "ForeignObject-" + drawingEnvironment.stringHashCode(item.toString());
       }
       let clone = item.clone();
       clone.name = item.name;
@@ -241,6 +229,17 @@ var DrawingEnvironment = function () {
           return hit.item.layer == paper.project.activeLayer;
         }
       });
+    }
+
+    // Process Keyboard Shortcuts (just Undo/Redo atm)
+    this.omniTool.onKeyDown = function (event) {
+      if (event.modifiers.control) {
+        if(event.key == 'z') {
+          drawingEnvironment.undo();
+        } else if(event.key == 'y') {
+          drawingEnvironment.redo();
+        }
+      }
     }
   }
 
@@ -482,11 +481,11 @@ var DrawingEnvironment = function () {
   }
 
   // Hash Generation for unique undo identifiers
-  this.stringHashCode = function() {
-    var hash = 0;
-    if (this.length == 0) { return hash; }
-    for (var i = 0; i < this.length; i++) {
-        var char = this.charCodeAt(i);
+  this.stringHashCode = function(stringToHash) {
+    let hash = 0;
+    if (stringToHash.length == 0) { return hash; }
+    for (let i = 0; i < stringToHash.length; i++) {
+        let char = stringToHash.charCodeAt(i);
         hash = ((hash<<5)-hash)+char;
         hash = hash & hash; // Convert to 32bit integer
     }
