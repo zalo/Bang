@@ -1,11 +1,3 @@
-// Mega Hack: Redirect the console.log to this one div that programmers hate (for iOS debugging)
-function customLog(obj) {
-  let OutputText = document.getElementById('Message Text');
-  OutputText.innerHTML = "<div>" + obj + "</div>\r\n" + OutputText.innerHTML;
-}
-console.log = customLog;
-console.error = customLog;
-
 var DrawingEnvironment = function () {
   this.isResizable = document.currentScript.getAttribute("resizable");              // Wraps the canvas in resizing handles
   this.width = document.currentScript.getAttribute("width");                        // Starting Width
@@ -497,19 +489,19 @@ var DrawingEnvironment = function () {
       document.documentElement.addEventListener('mouseup', drawingEnvironment.stopResize, false);
       document.documentElement.addEventListener('touchend', drawingEnvironment.stopResize, false);
       document.documentElement.addEventListener('touchcancel', drawingEnvironment.stopResize, false);
+      e.preventDefault();
     }
     this.doResize = function(e) {
       if(e.changedTouches && e.changedTouches.length > 0){
         e.pageX = e.changedTouches[0].pageX;
         e.pageY = e.changedTouches[0].pageY;
       }
-      console.log("Do Resize: "+ e.pageX + ", "+ e.pageY);
       let width  = (drawingEnvironment.startWidth  + e.pageX - drawingEnvironment.startX);
       let height = (drawingEnvironment.startHeight + e.pageY - drawingEnvironment.startY);
       drawingEnvironment.resizable.style.width  = width  + 'px';
       drawingEnvironment.resizable.style.height = height + 'px';
       paper.view.viewSize.set(width, height);
-      console.log("Resize output: "+ paper.view.viewSize.width + ", "+ paper.view.viewSize.height);
+      e.preventDefault();
     }
     this.stopResize = function(e) {
       document.documentElement.removeEventListener('mousemove', drawingEnvironment.doResize, false);   
@@ -517,6 +509,7 @@ var DrawingEnvironment = function () {
       document.documentElement.removeEventListener('mouseup', drawingEnvironment.stopResize, false);  
       document.documentElement.removeEventListener('touchend', drawingEnvironment.stopResize, false);
       document.documentElement.removeEventListener('touchcancel', drawingEnvironment.stopResize, false);
+      e.preventDefault();
     }
     this.resizer.addEventListener( 'mousedown',  drawingEnvironment.initResize, false );
     this.resizer.addEventListener( 'touchstart', drawingEnvironment.initResize, false );
