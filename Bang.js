@@ -435,7 +435,7 @@ var DrawingEnvironment = function () {
         this.omniTool.saveItemStateForUndo(item);
         item.remove();
       }
-    } else {
+    } else if(paper.project.layers.length > 1) {
       paper.project.activeLayer.remove();
     }
     this.updateOnionSkinning();
