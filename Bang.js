@@ -1,12 +1,14 @@
 var DrawingEnvironment = function () {
-  this.forceMobile = document.currentScript.getAttribute("forceMobile") == "true";
-  this.movePath = true;
-  this.brushWidth = 5;
-  this.skinningWidth = 3;
-  this.frameRate = 24;
-  this.removeCmd = 'Remove-';
-  this.forcedButton = -1;
-  this.reader = new FileReader();
+  this.forceMobile = document.currentScript.getAttribute("forceMobile") == "true";  // Whether to force the mobile buttons to appear
+  this.width = document.currentScript.getAttribute("width");                        // Starting Width
+  this.height = document.currentScript.getAttribute("height");                      // Starting Height
+  this.movePath = true;                                                             // Whether to move paths or add segments with middle click
+  this.brushWidth = 5;                                                              // The width of the brush
+  this.skinningWidth = 3;                                                           // The number of onion-skinning frames visible in each direction
+  this.frameRate = 24;                                                              // The current framerate to export to the .svg
+  this.removeCmd = 'Remove-';                                                       // Prefix on remove "do" commands
+  this.forcedButton = -1;                                                           // Used for forcing brush/move/eraser on mobile
+  this.reader = new FileReader();                                                   // File Reader for loading .svg sessions
 
   // Setup the Canvas, Project, Tools, and Callbacks
   this.init = function () {
@@ -86,7 +88,7 @@ var DrawingEnvironment = function () {
     }
   }
 
-  // Initialize the callbacks for the mouse tool
+  // Initialize the callbacks for the mouse/touch tool
   this.initOmniTool = function () {
     //Prevent Right-Clicking from bringing up the context menu
     this.canvas.setAttribute("oncontextmenu", "return false;");
