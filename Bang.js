@@ -472,7 +472,7 @@ var DrawingEnvironment = function () {
     this.resizer   = document.querySelector('.resizer'  );
 
     drawingEnvironment.startWidth = parseInt(document.defaultView.getComputedStyle( drawingEnvironment.resizable ).width,  10);
-    drawingEnvironment.startHeight = Math.min(512, drawingEnvironment.startWidth);
+    drawingEnvironment.startHeight = Math.min(512, drawingEnvironment.startWidth * 0.75);
     drawingEnvironment.resizable.style.height = drawingEnvironment.startHeight + 'px';
     paper.view.viewSize.set(drawingEnvironment.startWidth, drawingEnvironment.startHeight);
     
