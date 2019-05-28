@@ -1,7 +1,6 @@
 var DrawingEnvironment = function () {
-  this.resizable = document.currentScript.getAttribute("resizable");                // Wraps the canvas in resizing handles
+  this.isResizable = document.currentScript.getAttribute("resizable");              // Wraps the canvas in resizing handles
   this.width = document.currentScript.getAttribute("width");                        // Starting Width
-  this.height = document.currentScript.getAttribute("height");                      // Starting Height
   this.forceMobile = document.currentScript.getAttribute("forceMobile") == "true";  // Whether to force the mobile buttons to appear
   this.movePath = true;                                                             // Whether to move paths or add segments with middle click
   this.brushWidth = 5;                                                              // The width of the brush
@@ -28,7 +27,9 @@ var DrawingEnvironment = function () {
 
       // Register Animation and Resizing Callbacks
       //paper.view.onFrame  = function(event) { }
-      paper.view.onResize = function(event) { }
+      paper.view.onResize = function(event) {
+        drawingEnvironment.clearPreview(); 
+      }
 
       // Initialize the Brush/Manipulator/Eraser Tool
       drawingEnvironment.initOmniTool();
@@ -41,12 +42,14 @@ var DrawingEnvironment = function () {
       // Subscribe to the Framerate Box (added in this.initHTML)
       document.getElementById("Framerate").addEventListener('change', (data) => {
         drawingEnvironment.frameRate = data.target.value;
+        drawingEnvironment.clearPreview();
       });
 
       // Allow users to upload SVGs from past sessions
       document.getElementById("svg-file").addEventListener('input', () => {
         // Load, Read, and Process the file!
         drawingEnvironment.reader.readAsText(document.getElementById("svg-file").files[0]);
+        drawingEnvironment.clearPreview();
       });
 
       // Schedule processsing the uploaded file
@@ -86,6 +89,9 @@ var DrawingEnvironment = function () {
         drawingEnvironment.updateOnionSkinning();
         document.getElementById("svg-file").value = null;
       });
+
+      // Add event handlers to the corner and make this resizable
+      if(drawingEnvironment.isResizable) {  drawingEnvironment.initResizability(); }
     }
   }
 
@@ -459,6 +465,38 @@ var DrawingEnvironment = function () {
     }
   }
 
+  // Add event handlers to the corner and make this div/canvas resizable
+  this.initResizability = function(){
+    this.resizable = document.querySelector('.resizable');
+    this.resizer   = document.querySelector('.resizer'  );
+
+    drawingEnvironment.startWidth = parseInt(document.defaultView.getComputedStyle( drawingEnvironment.resizable ).width,  10);
+    drawingEnvironment.startHeight = Math.min(512, 
+      drawingEnvironment.startWidth, parseInt(document.defaultView.getComputedStyle( drawingEnvironment.resizable ).height, 10));
+    drawingEnvironment.resizable.style.height = drawingEnvironment.startHeight + 'px';
+    paper.view.viewSize.set(drawingEnvironment.startWidth, drawingEnvironment.startWidth);
+
+    this.resizer.addEventListener( 'mousedown', (e) => {
+      drawingEnvironment.startX = e.clientX; drawingEnvironment.startY = e.clientY;
+      drawingEnvironment.startWidth  = parseInt(document.defaultView.getComputedStyle( drawingEnvironment.resizable ).width,  10);
+      drawingEnvironment.startHeight = parseInt(document.defaultView.getComputedStyle( drawingEnvironment.resizable ).height, 10);
+      document.documentElement.addEventListener('mousemove', drawingEnvironment.doResize, false);
+      document.documentElement.addEventListener('mouseup', drawingEnvironment.stopResize, false);
+    }, false );
+    this.doResize = function(e) {
+      let width  = (drawingEnvironment.startWidth  + e.clientX - drawingEnvironment.startX);
+      let height = (drawingEnvironment.startHeight + e.clientY - drawingEnvironment.startY);
+      drawingEnvironment.resizable.style.width  = width  + 'px';
+      drawingEnvironment.resizable.style.height = height + 'px';
+      paper.view.viewSize.set(width, height);
+    }
+    this.stopResize = function(e) {
+      document.documentElement.removeEventListener('mousemove', drawingEnvironment.doResize, false);    
+      document.documentElement.removeEventListener('mouseup', drawingEnvironment.stopResize, false);
+    }
+  }
+
+
   // Add DOM Elements to the Document for user interaction
   this.initHTML = function() {
     // Massive Mobile Device Detection String; how many years will this work for?
@@ -469,7 +507,7 @@ var DrawingEnvironment = function () {
         this.isMobile = true;
     }
 
-    // Add buttons depending on whether this is a touchscreen device or not
+    // Add buttons depending on whether this is a mobile/touchscreen device or not
     let mobileButtons = '';
     if(this.isMobile){
       mobileButtons = '\
@@ -483,8 +521,16 @@ var DrawingEnvironment = function () {
     }
 
     // Add the main buttons that everyone will use
-    document.currentScript.insertAdjacentHTML('afterend', '\
-      <canvas id="DrawingEnvironmentCanvas" width="100" height="100" hidpi="on" style="border: #9999 1px solid; width: 100%; max-width: 512px;" resize></canvas>\
+    this.width = (this.width) ? this.width  : "100%";
+    this.isResizable = true;
+    let resizableStart = resizableEnd = '';
+    if(this.isResizable){
+      resizableStart = '<div class="resizable" style="background: white; width: ' + this.width + '; position: relative;">';
+      resizableEnd = '<div class="resizer" style="width: 10px; height: 10px; background: black; position:absolute; right: 0; bottom: 0; cursor: se-resize; user-select: none;"> </div></div>';
+    }
+    document.currentScript.insertAdjacentHTML('afterend', resizableStart+'\
+        <canvas id="DrawingEnvironmentCanvas" hidpi="on" style="border: #9999 1px solid; width: 100%; height: 100%;"></canvas>\
+      ' + resizableEnd + '\
       ' + mobileButtons + '\
       <div class="ProjectControls">\
           <b>Brush Width: </b> <input type="range" min="1" max="100" value="10" class="slider" id="brushWidth"> | \

@@ -3,10 +3,9 @@
 
 @import "{{ site.theme }}";
 
-canvas {
+canvas[resize] {
   border: #9999 1px solid;
   width: 100%;
-  max-width: 512px;
 }
 
 div.wrapper {
