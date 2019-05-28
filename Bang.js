@@ -5,7 +5,7 @@ var DrawingEnvironment = function () {
   this.movePath = true;                                                             // Whether to move paths or add segments with middle click
   this.brushWidth = 5;                                                              // The width of the brush
   this.skinningWidth = 3;                                                           // The number of onion-skinning frames visible in each direction
-  this.frameRate = 24;                                                              // The current framerate to export to the .svg
+  this.frameRate = 10;                                                              // The current framerate to export to the .svg
   this.removeCmd = 'Remove-';                                                       // Prefix on remove "do" commands
   this.forcedButton = -1;                                                           // Used for forcing brush/move/eraser on mobile
   this.reader = new FileReader();                                                   // File Reader for loading .svg sessions
@@ -302,7 +302,7 @@ var DrawingEnvironment = function () {
 
   // Generates CSS such that only one frame shows at a time
   // This is the "magic" that animates the SVG!
-  this.generateAnimationCSS = function (frameRate = 24) {
+  this.generateAnimationCSS = function (frameRate = 10) {
     let frameTime = 1.0 / frameRate;
     let animationTime = frameTime * paper.project.layers.length;
     let animationString =
@@ -477,7 +477,7 @@ var DrawingEnvironment = function () {
       </div>\
       <div class="PlaybackControls">\
           <input type="button" value="Play" onclick="drawingEnvironment.previewSVG();"> | \
-          Framerate: <input id="Framerate" type="number" value="24" min="0" max="240">\
+          Framerate: <input id="Framerate" type="number" value="10" min="0" max="240">\
       </div>\
       <div id="SVG Preview"></div><div id="SVG Text"></div>');
   }
