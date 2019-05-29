@@ -339,7 +339,7 @@ var DrawingEnvironment = function () {
         drawingEnvironment.prevFrame();
       } else if(event.key == 'delete') {
         drawingEnvironment.deleteFrame();
-      } else if (event.modifiers.control) {
+      } else if (event.modifiers.control || event.modifiers.meta) {
         if(event.key == 'z') {
           drawingEnvironment.undo();
         } else if(event.key == 'y') {
@@ -475,7 +475,7 @@ var DrawingEnvironment = function () {
       let gif = new GIF({
         workers: 2, quality: 10,
         transparent: 0x000000,
-        workerScript: this.workerFile ? 'gif.worker.js' : 'https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js'
+        workerScript: 'gif.worker.js'//this.workerFile ?  : 'https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js'
       });
 
       for (let i = 0; i < paper.project.layers.length; i++) {
