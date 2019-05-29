@@ -2,6 +2,7 @@ var DrawingEnvironment = function () {
   this.isResizable = document.currentScript.getAttribute("resizable");              // Wraps the canvas in resizing handles
   this.width = document.currentScript.getAttribute("width");                        // Starting Width
   this.forceMobile = document.currentScript.getAttribute("forceMobile") == "true";  // Whether to force the mobile buttons to appear
+  this.workerFile = document.currentScript.getAttribute("fileWorker") == "true";    // Whether to force the gif.worker.js to load from the current directory
   this.movePath = true;                                                             // Whether to move paths or add segments with middle click
   this.brushWidth = 5;                                                              // The width of the brush
   this.frameRate = 10;                                                              // The current framerate to export to the .svg
@@ -128,7 +129,7 @@ var DrawingEnvironment = function () {
         drawingEnvironment.clearPreview();
         // Begin creating a new brush stroke
         this.currentPath = new paper.Path();
-        this.currentPath.strokeColor = 'black';
+        this.currentPath.strokeColor = '#010101';
         this.currentPath.add(event.point);
         this.currentPath.strokeWidth = drawingEnvironment.brushWidth;
         this.currentPath.strokeCap = 'round';
@@ -461,15 +462,55 @@ var DrawingEnvironment = function () {
     link.click();
   }
 
+  // Adds the Generated GIF to the page for viewing
+  this.previewGIF = function() {
+    let GIFPreview = document.getElementById('Preview');
+    let SVGText = document.getElementById('Preview Text');
+    if(GIFPreview.innerHTML) {
+      GIFPreview.innerHTML = '';
+      SVGText.innerHTML = '';
+    } else {
+      SVGText.innerHTML = '';
+      let currentIndex = paper.project.activeLayer.index;
+      let gif = new GIF({
+        workers: 2, quality: 10,
+        transparent: 0x000000,
+        workerScript: this.workerFile ? 'gif.worker.js' : 'https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js'
+      });
+
+      for (let i = 0; i < paper.project.layers.length; i++) {
+        paper.project.layers[i].visible = false;
+      }
+
+      for (let i = 0; i < paper.project.layers.length; i++) {
+        paper.project.layers[i].activate();
+        paper.project.layers[i].visible = true;
+        if (i > 0) { paper.project.layers[i-1].visible = false; }
+        paper.project.layers[i].opacity = 1;
+        paper.view._needsUpdate = true;
+        paper.view.update();
+        gif.addFrame(this.canvas, {delay: 1000/this.frameRate, copy: true});
+      }
+
+      gif.on('finished', function(blob) {
+        GIFPreview.innerHTML = '<h2>GIF Preview: </h2><img src="'+URL.createObjectURL(blob)+'">';
+      });
+      gif.render();
+
+      paper.project.layers[currentIndex].activate();
+      this.updateOnionSkinning();
+    }
+  }
+
   // Adds the Generated SVG to the page for viewing
   this.previewSVG = function() {
-    let SVGPreview = document.getElementById('SVG Preview');
-    let SVGText = document.getElementById('SVG Text');
+    let SVGPreview = document.getElementById('Preview');
+    let SVGText = document.getElementById('Preview Text');
     if(SVGPreview.innerHTML) {
       SVGPreview.innerHTML = '';
       SVGText.innerHTML = '';
     } else {
-      SVGPreview.innerHTML = '<h2>Preview: </h2><img src="'+
+      SVGPreview.innerHTML = '<h2>SVG Preview: </h2><img src="'+
         "data:image/svg+xml;utf8,"+encodeURIComponent(this.createSVG())+'">';
       // Also add the text box for copying on iPads...
       if (this.isMobile) {
@@ -481,10 +522,10 @@ var DrawingEnvironment = function () {
     }
   }
 
-  // Destroy the current SVG Preview (and Text Box)
+  // Destroy the current Preview (and Text Box)
   this.clearPreview = function(clearSelection = true){
-    document.getElementById('SVG Preview').innerHTML = '';
-    document.getElementById('SVG Text').innerHTML = '';
+    document.getElementById('Preview').innerHTML = '';
+    document.getElementById('Preview Text').innerHTML = '';
     if(this.omniTool && clearSelection){
       for(let i = 0; i < this.omniTool.selectedSegments.length; i++){
         this.omniTool.selectedSegments[i].selected = false;
@@ -715,12 +756,13 @@ var DrawingEnvironment = function () {
           <input id="svg-file" name="svg-file" type="file" accept="image/svg+xml" style="display:none;"/>\
           <label for="svg-file" title="Load SVG from File" style="border: 1px solid gray;background-color: #eeeeee;padding: 1.5px 5px 1px 5px" >  📁</label> | \
           <input type="button" title="Save to SVG"            value="💾" onclick="drawingEnvironment.saveSVG();"> | \
-          <input type="button" title="Toggles Playing the Animation" value="▶"  onclick="drawingEnvironment.previewSVG();" style="color: green;-webkit-text-stroke: 1.0px #333333;"> | \
-          Framerate: <input id="Framerate" type="number" value="10" min="0" max="240">\
+          <input type="button" title="Toggles Playing the Animation" value="▶ SVG"  onclick="drawingEnvironment.previewSVG();" style="color: green;-webkit-text-stroke: 1.0px #333333;"> | \
+          <input type="button" title="Toggles Showing a GIF Preview" value="▶ GIF"  onclick="drawingEnvironment.previewGIF();" style="color: green;-webkit-text-stroke: 1.0px #333333;"> | \
+          FPS: <input id="Framerate" type="number" style="width:3em;" value="10" min="0" max="240" >\
       </div>\
       <div class="PlaybackControls">\
       </div>\
-      <div id="SVG Preview"></div><div id="SVG Text"></div><div id="Message Text"></div>');
+      <div id="Preview"></div><div id="Preview Text"></div><div id="Message Text"></div>');
   }
 
   // Hash Generation for unique undo identifiers

@@ -28,3 +28,5 @@ It attempts to recreate some of the functionality of .swf's using clever CSS emb
 ## Credits
 
 Bang is based on the amazing [`paper.js`](http://paperjs.org/) by [@lehni](https://github.com/lehni) and [@puckey](https://github.com/puckey).
+
+.gif Export made possible with [@jnordberg's](https://johan-nordberg.com/) [.gif.js](https://github.com/jnordberg/gif.js).
