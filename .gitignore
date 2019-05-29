@@ -16,3 +16,4 @@ npm-debug.log*
 package-lock.json
 *.code-workspace
 testing/
+*.vs

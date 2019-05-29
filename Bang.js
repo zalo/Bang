@@ -597,11 +597,11 @@ var DrawingEnvironment = function () {
     if(this.isMobile){
       mobileButtons = '\
         <div class="ProjectControls">\
-        <input type="button" value="Brush" onclick="drawingEnvironment.forcedButton = 0;"> | \
-        <input type="button" value="Move" onclick="drawingEnvironment.forcedButton = 1;"> | \
-        <input type="button" value="Erase" onclick="drawingEnvironment.forcedButton = 2;"> |  | \
-        <input type="button" value="Undo" onclick="drawingEnvironment.undo();"> | \
-        <input type="button" value="Redo" onclick="drawingEnvironment.redo();"> \
+        <input type="button" title="Brush Tool"  value="🖌️" onclick="drawingEnvironment.forcedButton = 0;"> | \
+        <input type="button" title="Move Tool"   value="⛶"  onclick="drawingEnvironment.forcedButton = 1;"> | \
+        <input type="button" title="Eraser Tool" value="❌" onclick="drawingEnvironment.forcedButton = 2;"> |  | \
+        <input type="button" title="Undo"        value="⟲" onclick="drawingEnvironment.undo();"> | \
+        <input type="button" title="Redo"        value="⟳" onclick="drawingEnvironment.redo();"> \
         </div>';
     }
 
@@ -618,19 +618,20 @@ var DrawingEnvironment = function () {
       ' + resizableEnd + '\
       ' + mobileButtons + '\
       <div class="ProjectControls">\
-          <b>Brush Width: </b> <input type="range" min="1" max="100" value="10" class="slider" id="brushWidth"> | \
-          <input type="button" value="Prev" onclick="drawingEnvironment.prevFrame();"> | \
-          <input type="button" value="Next" onclick="drawingEnvironment.nextFrame();"> | \
-          <input type="button" value="Duplicate" onclick="drawingEnvironment.duplicateFrame();"> |\
-          <input type="button" value="Delete" onclick="drawingEnvironment.deleteFrame();">\
+          <b>Brush Width: </b> <input type="range" min="1" max="50" value="10" class="slider" id="brushWidth" style="width: 3em;"> | \
+          <input type="button" title="Previous Frame"     value="↤" onclick="drawingEnvironment.prevFrame();"> | \
+          <input type="button" title="Next Frame"         value="↦" onclick="drawingEnvironment.nextFrame();"> | \
+          <input type="button" title="Duplicate Frame"    value="⇰" onclick="drawingEnvironment.duplicateFrame();"> |\
+          <input type="button" title="Clear/Delete Frame" value="⎚" onclick="drawingEnvironment.deleteFrame();">\
       </div>\
       <div class="ExportControls">\
-          Load from SVG: <input id="svg-file" type="file" accept="image/svg+xml"/> | \
-          <input type="button" value="Save to SVG" onclick="drawingEnvironment.saveSVG();">\
+          <input id="svg-file" name="svg-file" type="file" accept="image/svg+xml" style="display:none;"/>\
+          <label for="svg-file" title="Load SVG from File">📁</label> \
+          <input type="button" title="Save to SVG"            value="💾" onclick="drawingEnvironment.saveSVG();">\
+          <input type="button" title="Play/Preview Animation" value="▶"  onclick="drawingEnvironment.previewSVG();"> | \
+          Framerate: <input id="Framerate" type="number" value="10" min="0" max="240">\
       </div>\
       <div class="PlaybackControls">\
-          <input type="button" value="Play" onclick="drawingEnvironment.previewSVG();"> | \
-          Framerate: <input id="Framerate" type="number" value="10" min="0" max="240">\
       </div>\
       <div id="SVG Preview"></div><div id="SVG Text"></div><div id="Message Text"></div>');
   }
