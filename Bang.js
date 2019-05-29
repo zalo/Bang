@@ -140,7 +140,6 @@ var DrawingEnvironment = function () {
         if (this.button == 1) {
           if (!hitResult) {
             // Create selection bounds rectangle
-            this.initialSelectionPoint = event.point.clone();
             this.selectionRectPath = new paper.Path.Rectangle({
                 from: event.point,
                 to: event.point
@@ -215,7 +214,7 @@ var DrawingEnvironment = function () {
         // If Dragging...
 
         if (this.selectionRectPath) {
-          let newRect = new paper.Path.Rectangle(this.initialSelectionPoint, event.point);
+          let newRect = new paper.Path.Rectangle(event.downPoint, event.point);
           this.selectionRectPath.replaceWith(newRect);
           this.selectionRectPath.remove();
           this.selectionRectPath = newRect;
@@ -239,9 +238,19 @@ var DrawingEnvironment = function () {
             }
           }
         } else if(this.selectedSegments.length > 0) {
+          // Translate the points
           for(let i = 0; i < this.selectedSegments.length; i++) {
-            this.selectedSegments[i].point = this.selectedSegments[i].point.add(event.delta); // To Replace with more interesting drag function
+            this.selectedSegments[i].point = this.selectedSegments[i].point.add(event.delta);
           }
+          // Translate and Rotate the points about their average (too fiddly for now...)
+          //let average = new paper.Point(0,0);
+          //this.selectedSegments.forEach((segment) => { average.set(average.add(segment.point)) });
+          //average.set(average.divide(this.selectedSegments.length));
+          //let angle = (event.lastPoint.subtract(average)).getDirectedAngle(event.point.subtract(average));
+          //let oldDistance = event.lastPoint.getDistance(average);
+          //let newAverage = average.subtract(event.point).normalize(oldDistance).add(event.point);
+          //let matrix = new paper.Matrix().rotate(angle, average).translate(newAverage.subtract(average));
+          //this.selectedSegments.forEach((segment) => { segment.transform(matrix); });
         } else if (this.currentSegment) {
           this.currentSegment.point = this.currentSegment.point.add(event.delta);
           //this.currentPath.smooth();
@@ -269,7 +278,6 @@ var DrawingEnvironment = function () {
       if(this.selectionRectPath){
         this.selectionRectPath.remove();
         this.selectionRectPath = null;
-        this.initialSelectionPoint = null;
       }
       if ((!this.button) || this.button <= 0) {
         this.currentPath.simplify(10);
@@ -393,7 +401,7 @@ var DrawingEnvironment = function () {
     let animationString = paper.project.layers.length > 1 ? 
                             this.generateAnimationCSS(this.frameRate) : '';
     let history = [];
-    
+
     // Ensure that all frames (but the first) are opaque and hidden by default
     for (let i = 0; i < paper.project.layers.length; i++) {
       paper.project.layers[i].visible = paper.project.layers.length == 1 ? true : false;
