@@ -473,7 +473,7 @@ var DrawingEnvironment = function () {
         "data:image/svg+xml;utf8,"+encodeURIComponent(this.createSVG())+'">';
       // Also add the text box for copying on iPads...
       if (this.isMobile) {
-        SVGText.innerHTML = '<input id="SVG Box" type="text"><br>';
+        SVGText.innerHTML = 'Save in Text Form: <input id="SVG Box" type="text"><br>';
         setTimeout(function() {
           document.getElementById('SVG Box').value = drawingEnvironment.createSVG();
         }, 500);
@@ -706,16 +706,16 @@ var DrawingEnvironment = function () {
       ' + mobileButtons + '\
       <div class="ProjectControls">\
           <b>Width: </b> <input type="range" min="1" max="50" value="10" class="slider" id="brushWidth" style="width: 3em;" title="Brush Width"> | \
-          <input type="button" title="Previous Frame"     value="↤" onclick="drawingEnvironment.prevFrame();"> | \
-          <input type="button" title="Next Frame"         value="↦" onclick="drawingEnvironment.nextFrame();"> | \
-          <input type="button" title="Duplicate Frame"    value="⇰" onclick="drawingEnvironment.duplicateFrame();"> |\
-          <input type="button" title="Clear/Delete Frame" value="🗙" onclick="drawingEnvironment.deleteFrame();">\
+          <input type="button" title="Previous Frame"     value="↤"  onclick="drawingEnvironment.prevFrame();"> | \
+          <input type="button" title="Next Frame"         value="↦"  onclick="drawingEnvironment.nextFrame();"> | \
+          <input type="button" title="Duplicate Frame"    value="⇰"  onclick="drawingEnvironment.duplicateFrame();"> |\
+          <input type="button" title="Clear/Delete Frame" value="❌" onclick="drawingEnvironment.deleteFrame();">\
       </div>\
       <div class="ExportControls">\
           <input id="svg-file" name="svg-file" type="file" accept="image/svg+xml" style="display:none;"/>\
           <label for="svg-file" title="Load SVG from File" style="border: 1px solid gray;background-color: #eeeeee;padding: 1.5px 5px 1px 5px" >  📁</label> | \
           <input type="button" title="Save to SVG"            value="💾" onclick="drawingEnvironment.saveSVG();"> | \
-          <input type="button" title="Toggles Playing the Animation" value="▶"  onclick="drawingEnvironment.previewSVG();"> | \
+          <input type="button" title="Toggles Playing the Animation" value="▶"  onclick="drawingEnvironment.previewSVG();" style="color: green;-webkit-text-stroke: 1.0px #333333;"> | \
           Framerate: <input id="Framerate" type="number" value="10" min="0" max="240">\
       </div>\
       <div class="PlaybackControls">\
