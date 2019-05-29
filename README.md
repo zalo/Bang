@@ -1,4 +1,5 @@
 <!--Bang Animator-->
+<img id="BangLogo" src="Bang.svg">
 
 ## Instructions
 
