@@ -1,5 +1,5 @@
 <!--Bang Animator-->
-<img id="BangLogo" src="Bang.svg">
+<a href="https://zalo.github.io/Bang/"><img id="BangLogo" title="Bang Animation Tool" src="_layouts/Bang.svg"></a>
 
 ## Instructions
 
