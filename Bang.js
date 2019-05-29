@@ -175,6 +175,7 @@ var DrawingEnvironment = function () {
           if(this.selectedSegments.length > 0){
             for(let i = paper.project.selectedItems.length-1; i >= 0; i--){
               let item = paper.project.selectedItems[i];
+              item.selected = false;
               this.saveItemStateForUndo(item);
               item.remove();
             }
@@ -460,6 +461,7 @@ var DrawingEnvironment = function () {
     } else {
       paper.project.layers[nextIndex].activate();
     }
+    this.persistSelectionToCurrentFrame();
     this.updateOnionSkinning();
   }
 
@@ -483,6 +485,7 @@ var DrawingEnvironment = function () {
     paper.project.activeLayer.children[0].name = "Drawing";
     paper.project.activeLayer.children[1].name = "Undo";
     paper.project.activeLayer.children[2].name = "Redo";
+    this.persistSelectionToCurrentFrame();
     this.updateOnionSkinning();
   }
 
@@ -490,11 +493,13 @@ var DrawingEnvironment = function () {
   this.prevFrame = function () {
     paper.project.activeLayer.selected = false;
     paper.project.layers[Math.max(0, paper.project.activeLayer.index - 1)].activate();
+    this.persistSelectionToCurrentFrame();
     this.updateOnionSkinning();
   }
 
   // Delete the elements in this frame first (allows for undo's), then the frame itself (no undo)
   this.deleteFrame = function () {
+    this.clearSelection();
     if(paper.project.activeLayer.children[0].children.length > 0){
       for(let i = paper.project.activeLayer.children[0].children.length-1; i >= 0; i--){
         let item = paper.project.activeLayer.children[0].children[i];
@@ -507,9 +512,44 @@ var DrawingEnvironment = function () {
     this.updateOnionSkinning();
   }
 
+  this.persistSelectionToCurrentFrame = function(){
+    if(this.omniTool){
+      // Store up all the selected segments and the pure names of their parent strokes
+      let persistedSelection = {};
+      for (let i = 0; i < this.omniTool.selectedSegments.length; i++) {
+        let pathName = this.omniTool.selectedSegments[i].path.name.split(" ")[0];
+        if(persistedSelection[pathName]) {
+          persistedSelection[pathName].push(this.omniTool.selectedSegments[i].index)
+        } else { persistedSelection[pathName] = [this.omniTool.selectedSegments[i].index]; }
+        this.omniTool.selectedSegments[i].selected = false;
+      }
+      this.omniTool.selectedSegments = [];
+
+      // Find the equivalent strokes in the current frame
+      let currentFrameStrokes = paper.project.activeLayer.children[0].getItems({
+        match: (item)=>{ return !(persistedSelection[item.name.split(" ")[0]] === undefined); }
+      });
+      for (var i = 0; i < currentFrameStrokes.length; i++) {
+        let name = currentFrameStrokes[i].name.split(" ")[0];
+        for (var j = 0; j < persistedSelection[name].length; j++) {
+          currentFrameStrokes[i].segments[persistedSelection[name][j]].selected = true;
+          this.omniTool.selectedSegments.push(currentFrameStrokes[i].segments[persistedSelection[name][j]]);
+        }
+      }
+    }
+  }
+  this.clearSelection = function(){
+    if(this.omniTool){
+      for(let i = 0; i < this.omniTool.selectedSegments.length; i++){
+        this.omniTool.selectedSegments[i].selected = false;
+      }
+      this.omniTool.selectedSegments = [];
+    }
+  }
+
   // Ensure all frames are named and rendering properly
   this.updateOnionSkinning = function (clear = true) {
-    if(clear) { this.clearPreview(); }
+    if(clear) { this.clearPreview(false); }
     let onionSkinningWidth = this.isMobile ? 1 : 3; // The number of onion-skinning frames visible in each direction, slow on mobile!
     let currentActiveIndex = paper.project.activeLayer.index;
     let minIndex = Math.max(0, currentActiveIndex - onionSkinningWidth);
@@ -628,7 +668,7 @@ var DrawingEnvironment = function () {
           <input id="svg-file" name="svg-file" type="file" accept="image/svg+xml" style="display:none;"/>\
           <label for="svg-file" title="Load SVG from File">📁</label> \
           <input type="button" title="Save to SVG"            value="💾" onclick="drawingEnvironment.saveSVG();">\
-          <input type="button" title="Play/Preview Animation" value="▶"  onclick="drawingEnvironment.previewSVG();"> | \
+          <input type="button" title="Toggles Playing the Animation" value="▶"  onclick="drawingEnvironment.previewSVG();"> | \
           Framerate: <input id="Framerate" type="number" value="10" min="0" max="240">\
       </div>\
       <div class="PlaybackControls">\
