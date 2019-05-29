@@ -145,9 +145,7 @@ var DrawingEnvironment = function () {
                 to: event.point
             });
           } else if(this.selectedSegments.length > 0) {
-            for(let i = paper.project.selectedItems.length-1; i >= 0; i--){
-              this.saveItemStateForUndo(paper.project.selectedItems[i]);
-            }
+            this.markForSave = true;
           } else if(hitResult) {
             this.currentPath = hitResult.item;
             if(this.currentPath){
@@ -238,6 +236,12 @@ var DrawingEnvironment = function () {
             }
           }
         } else if(this.selectedSegments.length > 0) {
+          if(this.markForSave){
+            for(let i = paper.project.selectedItems.length-1; i >= 0; i--){
+              this.saveItemStateForUndo(paper.project.selectedItems[i]);
+            }
+            this.markForSave = false;
+          }
           // Translate the points
           for(let i = 0; i < this.selectedSegments.length; i++) {
             this.selectedSegments[i].point = this.selectedSegments[i].point.add(event.delta);
@@ -250,6 +254,21 @@ var DrawingEnvironment = function () {
           //let oldDistance = event.lastPoint.getDistance(average);
           //let newAverage = average.subtract(event.point).normalize(oldDistance).add(event.point);
           //let matrix = new paper.Matrix().rotate(angle, average).translate(newAverage.subtract(average));
+          //this.selectedSegments.forEach((segment) => { segment.transform(matrix); });
+
+          // Translate and Rotate the points in a slightly weirder way (totally broken...)
+          //let angleSum = 0.0; let oldAverageSum = new paper.Point(0,0); let newAverageSum = new paper.Point(0,0);
+          //this.selectedSegments.forEach((segment) =>{
+          //  let oldDistance = event.lastPoint.getDistance(segment.point);
+          //  let movedPoint = segment.point.subtract(event.point).normalize(oldDistance).add(event.point);
+          //  angleSum += (event.lastPoint.subtract(segment.point)).getDirectedAngle(event.point.subtract(movedPoint));
+          //  oldAverageSum.set(oldAverageSum.add(segment.point));
+          //  newAverageSum.set(newAverageSum.add(movedPoint));
+          //});
+          //let translation = (newAverageSum.divide(this.selectedSegments.length)).subtract(
+          //                   oldAverageSum.divide(this.selectedSegments.length));
+          //let angle = (angleSum / this.selectedSegments.length)*2.0;
+          //let matrix = new paper.Matrix().rotate(angle, event.lastPoint).translate(translation);
           //this.selectedSegments.forEach((segment) => { segment.transform(matrix); });
         } else if (this.currentSegment) {
           this.currentSegment.point = this.currentSegment.point.add(event.delta);
@@ -280,7 +299,11 @@ var DrawingEnvironment = function () {
         this.selectionRectPath = null;
       }
       if ((!this.button) || this.button <= 0) {
-        this.currentPath.simplify(10);
+        if(this.currentPath.segments.length > 1){
+          this.currentPath.simplify(10);
+        } else {
+          this.currentPath.add(event.point);
+        }
         this.currentPath.name = "Stroke-" + drawingEnvironment.stringHashCode(this.currentPath.toString());
         this.currentPath.addTo(paper.project.activeLayer.children[0]);
 
