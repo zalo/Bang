@@ -713,7 +713,7 @@ var DrawingEnvironment = function () {
       </div>\
       <div class="ExportControls">\
           <input id="svg-file" name="svg-file" type="file" accept="image/svg+xml" style="display:none;"/>\
-          <label for="svg-file" title="Load SVG from File" style="border: 1px solid gray;background-color: #eeeeee;padding: 2px 5px 2px 5px" >  📁</label> | \
+          <label for="svg-file" title="Load SVG from File" style="border: 1px solid gray;background-color: #eeeeee;padding: 1.5px 5px 1px 5px" >  📁</label> | \
           <input type="button" title="Save to SVG"            value="💾" onclick="drawingEnvironment.saveSVG();"> | \
           <input type="button" title="Toggles Playing the Animation" value="▶"  onclick="drawingEnvironment.previewSVG();"> | \
           Framerate: <input id="Framerate" type="number" value="10" min="0" max="240">\
