@@ -389,16 +389,32 @@ var DrawingEnvironment = function () {
   }
 
   // Generate the Animated SVG from the current paper.js project
-  this.createSVG = function(){
+  this.createSVG = function(includeHistory = false){
+    let animationString = paper.project.layers.length > 1 ? 
+                            this.generateAnimationCSS(this.frameRate) : '';
+    let history = [];
+    
     // Ensure that all frames (but the first) are opaque and hidden by default
     for (let i = 0; i < paper.project.layers.length; i++) {
       paper.project.layers[i].visible = paper.project.layers.length == 1 ? true : false;
       paper.project.layers[i].opacity = 1;
+      if (!includeHistory) {
+        history.push([paper.project.layers[i].children[1],  
+                      paper.project.layers[i].children[2]]);
+        paper.project.layers[i].children[2].remove();
+        paper.project.layers[i].children[1].remove();
+      }
     }
-    let animationString = paper.project.layers.length > 1 ? 
-                            this.generateAnimationCSS(this.frameRate) : '';
-
+    
     let svgString = paper.project.exportSVG({ asString: true });
+
+    if (!includeHistory) {
+      for (let i = 0; i < paper.project.layers.length; i++) {
+        paper.project.layers[i].addChild(history[i][0]);
+        paper.project.layers[i].addChild(history[i][1]);
+      }
+    }
+
     svgString = svgString.substring(0, svgString.length - 6) +
                 animationString + svgString.substring(svgString.length - 6);
     this.updateOnionSkinning(false);
@@ -410,7 +426,7 @@ var DrawingEnvironment = function () {
     let link = document.createElement("a");
     link.download = "drawingExport.svg";
     link.href = "data:image/svg+xml;utf8," + 
-                  encodeURIComponent(this.createSVG());
+                  encodeURIComponent(this.createSVG(includeHistory=true));
     link.click();
   }
 
