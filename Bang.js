@@ -684,9 +684,9 @@ var DrawingEnvironment = function () {
     if(this.isMobile){
       mobileButtons = '\
         <div class="ProjectControls">\
-        <input type="button" title="Brush Tool"  value="🖌️" onclick="drawingEnvironment.forcedButton = 0;"> | \
-        <input type="button" title="Move Tool"   value="⛶"  onclick="drawingEnvironment.forcedButton = 1;"> | \
-        <input type="button" title="Eraser Tool" value="❌" onclick="drawingEnvironment.forcedButton = 2;"> |  | \
+        <input type="button" title="Brush Tool"  value="🖌" onclick="drawingEnvironment.forcedButton = 0;"> | \
+        <input type="button" title="Move Tool"   value="⌖"  onclick="drawingEnvironment.forcedButton = 1;"> | \
+        <input type="button" title="Eraser Tool" value="✐" onclick="drawingEnvironment.forcedButton = 2;"> |  | \
         <input type="button" title="Undo"        value="⟲" onclick="drawingEnvironment.undo();"> | \
         <input type="button" title="Redo"        value="⟳" onclick="drawingEnvironment.redo();"> \
         </div>';
@@ -705,16 +705,16 @@ var DrawingEnvironment = function () {
       ' + resizableEnd + '\
       ' + mobileButtons + '\
       <div class="ProjectControls">\
-          <b>Brush Width: </b> <input type="range" min="1" max="50" value="10" class="slider" id="brushWidth" style="width: 3em;"> | \
+          <b>Width: </b> <input type="range" min="1" max="50" value="10" class="slider" id="brushWidth" style="width: 3em;" title="Brush Width"> | \
           <input type="button" title="Previous Frame"     value="↤" onclick="drawingEnvironment.prevFrame();"> | \
           <input type="button" title="Next Frame"         value="↦" onclick="drawingEnvironment.nextFrame();"> | \
           <input type="button" title="Duplicate Frame"    value="⇰" onclick="drawingEnvironment.duplicateFrame();"> |\
-          <input type="button" title="Clear/Delete Frame" value="⎚" onclick="drawingEnvironment.deleteFrame();">\
+          <input type="button" title="Clear/Delete Frame" value="🗙" onclick="drawingEnvironment.deleteFrame();">\
       </div>\
       <div class="ExportControls">\
           <input id="svg-file" name="svg-file" type="file" accept="image/svg+xml" style="display:none;"/>\
-          <label for="svg-file" title="Load SVG from File">📁</label> \
-          <input type="button" title="Save to SVG"            value="💾" onclick="drawingEnvironment.saveSVG();">\
+          <label for="svg-file" title="Load SVG from File" style="border: 1px solid gray;background-color: #eeeeee;padding: 2px 5px 2px 5px" >  📁</label> | \
+          <input type="button" title="Save to SVG"            value="💾" onclick="drawingEnvironment.saveSVG();"> | \
           <input type="button" title="Toggles Playing the Animation" value="▶"  onclick="drawingEnvironment.previewSVG();"> | \
           Framerate: <input id="Framerate" type="number" value="10" min="0" max="240">\
       </div>\
