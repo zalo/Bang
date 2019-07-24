@@ -27,9 +27,9 @@ var DrawingEnvironment = function () {
 
       // Register Animation and Resizing Callbacks
       //paper.view.onFrame  = function(event) { }
-      paper.view.onResize = function(event) {
+      paper.view.onResize = function() {
         drawingEnvironment.clearPreview(); 
-      }
+      };
 
       // Initialize the Brush/Manipulator/Eraser Tool
       drawingEnvironment.initOmniTool();
@@ -147,7 +147,7 @@ var DrawingEnvironment = function () {
             });
           } else if(this.selectedSegments.length > 0) {
             this.markForSave = true;
-          } else if(hitResult) {
+          } else {
             this.currentPath = hitResult.item;
             if(this.currentPath){
               this.saveItemStateForUndo(hitResult.item);
@@ -607,7 +607,7 @@ var DrawingEnvironment = function () {
       for (let i = 0; i < this.omniTool.selectedSegments.length; i++) {
         let pathName = this.omniTool.selectedSegments[i].path.name.split(" ")[0];
         if(persistedSelection[pathName]) {
-          persistedSelection[pathName].push(this.omniTool.selectedSegments[i].index)
+          persistedSelection[pathName].push(this.omniTool.selectedSegments[i].index);
         } else { persistedSelection[pathName] = [this.omniTool.selectedSegments[i].index]; }
         this.omniTool.selectedSegments[i].selected = false;
       }
@@ -736,7 +736,7 @@ var DrawingEnvironment = function () {
     // Add the main buttons that everyone will use
     this.width = (this.width) ? this.width  : "100%";
     this.isResizable = true;
-    let resizableStart = resizableEnd = '';
+    let resizableStart = ''; let resizableEnd = '';
     if(this.isResizable){
       resizableStart = '<div class="resizable" style="background: white; width: ' + this.width + '; position: relative;">';
       resizableEnd = '<div class="resizer" style="width: 15px; height: 15px; background: #999999; position:absolute; right: 0; bottom: 0; cursor: se-resize; user-select: none;">  </div></div>';
